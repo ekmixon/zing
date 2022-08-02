@@ -124,7 +124,7 @@ class Command(BaseCommand):
                 try:
                     user_dict[username] = User.objects.get(username=username)
                 except User.DoesNotExist:
-                    raise ImproperlyConfigured("User %s not found." % username)
+                    raise ImproperlyConfigured(f"User {username} not found.")
 
         reporter = JSONReporter()
         for username, user_conf in users:
@@ -143,13 +143,13 @@ class Command(BaseCommand):
 
             fullname = user_conf["name"]
 
-            self.stdout.write("Generating invoices for %s..." % fullname)
+            self.stdout.write(f"Generating invoices for {fullname}...")
             invoice.generate()
 
             if not send_emails:
                 continue
 
-            self.stdout.write("Sending email to %s..." % fullname)
+            self.stdout.write(f"Sending email to {fullname}...")
             # FIXME: reuse connections to the mail server
             # (http://stackoverflow.com/a/10215091/783019)
             if (
@@ -165,4 +165,4 @@ class Command(BaseCommand):
 
         if options["generate_report"]:
             reporter.generate()
-            self.stdout.write("JSON report written to %s." % reporter.filepath)
+            self.stdout.write(f"JSON report written to {reporter.filepath}.")

@@ -194,11 +194,11 @@ class PootleTestEnv(object):
         from pootle_language.models import Language
 
         # add 2 languages
-        for i_ in range(0, 2):
+        for _ in range(2):
             LanguageDBFactory()
 
         source_language = Language.objects.get(code="en")
-        for i_ in range(0, 2):
+        for _ in range(2):
             # add 2 projects
             ProjectDBFactory(source_language=source_language)
 
@@ -223,7 +223,7 @@ class PootleTestEnv(object):
 
             store = StoreDBFactory(translation_project=tp, name="terminology.po")
             store.save()
-            for i_ in range(0, 1):
+            for _ in range(1):
                 UnitDBFactory(store=store)
 
     def setup_disabled_project(self):
@@ -308,17 +308,19 @@ class PootleTestEnv(object):
 
         from pootle_store.constants import UNTRANSLATED, TRANSLATED, FUZZY, OBSOLETE
 
-        for i_ in range(0, n[0]):
+        for _ in range(n[0]):
             # add 3 stores
-            if parent is None:
-                store = StoreDBFactory(translation_project=tp)
-            else:
-                store = StoreDBFactory(translation_project=tp, parent=parent)
+            store = (
+                StoreDBFactory(translation_project=tp)
+                if parent is None
+                else StoreDBFactory(translation_project=tp, parent=parent)
+            )
+
             store.save()
 
             # add 8 units to each store
             for state in [UNTRANSLATED, TRANSLATED, FUZZY, OBSOLETE]:
-                for i_ in range(0, n[1]):
+                for _ in range(n[1]):
                     UnitDBFactory(store=store, state=state)
 
     def _update_submission_times(self, unit, update_time, last_update=None):
@@ -347,8 +349,11 @@ class PootleTestEnv(object):
 
         # add suggestion at first_modified
         suggestion, created_ = unit.add_suggestion(
-            "Suggestion for %s" % (unit.target or unit.source), user=member, touch=False
+            f"Suggestion for {unit.target or unit.source}",
+            user=member,
+            touch=False,
         )
+
         self._update_submission_times(unit, first_modified, created)
 
         # accept the suggestion 7 days later if not untranslated
@@ -364,10 +369,11 @@ class PootleTestEnv(object):
 
         # add another suggestion as different user 7 days later
         suggestion2_, created_ = unit.add_suggestion(
-            "Suggestion 2 for %s" % (unit.target or unit.source),
+            f"Suggestion 2 for {unit.target or unit.source}",
             user=member2,
             touch=False,
         )
+
         self._update_submission_times(
             unit, first_modified + timedelta(days=14), next_time
         )
@@ -376,7 +382,6 @@ class PootleTestEnv(object):
         if original_state == FUZZY:
             unit.markfuzzy()
 
-        # mark OBSOLETE
         elif original_state == OBSOLETE:
             unit.makeobsolete()
 
@@ -387,7 +392,7 @@ class PootleTestEnv(object):
             old_state = unit.state
             current_time = timezone.now() - timedelta(days=14)
 
-            unit.target_f = "Updated %s" % old_target
+            unit.target_f = f"Updated {old_target}"
             unit._target_updated = True
             unit.store.record_submissions(
                 unit,

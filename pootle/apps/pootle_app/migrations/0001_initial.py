@@ -6,6 +6,8 @@ import pootle.core.mixins.treeitem
 from django.conf import settings
 
 
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -29,7 +31,9 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(max_length=255)),
                 (
                     "pootle_path",
-                    models.CharField(unique=True, max_length=255, db_index=True),
+                    models.CharField(
+                        unique=True, max_length=255, db_index=True
+                    ),
                 ),
                 ("obsolete", models.BooleanField(default=False)),
                 (
@@ -42,7 +46,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ["name"],},
+            options={
+                "ordering": ["name"],
+            },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem),
         ),
         migrations.CreateModel(
@@ -92,6 +98,6 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.AlterUniqueTogether(
-            name="permissionset", unique_together=set([("user", "directory")]),
+            name="permissionset", unique_together={("user", "directory")}
         ),
     ]

@@ -36,7 +36,7 @@ def import_func(path):
 
 
 def dictsum(x, y):
-    return dict((n, x.get(n, 0) + y.get(n, 0)) for n in set(x) | set(y))
+    return {n: x.get(n, 0) + y.get(n, 0) for n in set(x) | set(y)}
 
 
 def ajax_required(f):

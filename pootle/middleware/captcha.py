@@ -75,7 +75,7 @@ class CaptchaMiddleware(MiddlewareMixin):
             except KeyError:
                 source_urls = 0
 
-            if comment_urls == 0 and (target_urls == 0 or target_urls == source_urls):
+            if comment_urls == 0 and target_urls in [0, source_urls]:
                 return
 
         if "captcha_answer" in request.POST:

@@ -25,20 +25,7 @@ def test_parse_multistring_invalid(invalid_value):
         parse_multistring(invalid_value)
 
 
-@pytest.mark.parametrize(
-    "db_string, expected_ms, is_plural",
-    [
-        ("foo bar", multistring("foo bar"), False),
-        ("foo%s" % SEPARATOR, multistring(["foo", ""]), True),
-        ("foo%s%s" % (SEPARATOR, PLURAL_PLACEHOLDER), multistring("foo"), True),
-        ("foo%sbar" % SEPARATOR, multistring(["foo", "bar"]), True),
-        (
-            "foo%sbar%sbaz" % (SEPARATOR, SEPARATOR),
-            multistring(["foo", "bar", "baz"]),
-            True,
-        ),
-    ],
-)
+@pytest.mark.parametrize("db_string, expected_ms, is_plural", [("foo bar", multistring("foo bar"), False), (f"foo{SEPARATOR}", multistring(["foo", ""]), True), (f"foo{SEPARATOR}{PLURAL_PLACEHOLDER}", multistring("foo"), True), (f"foo{SEPARATOR}bar", multistring(["foo", "bar"]), True), (f"foo{SEPARATOR}bar{SEPARATOR}baz", multistring(["foo", "bar", "baz"]), True)])
 def test_parse_multistring(db_string, expected_ms, is_plural):
     parsed_ms = parse_multistring(db_string)
     assert parsed_ms == expected_ms
@@ -51,24 +38,7 @@ def test_unparse_multistring_invalid(invalid_value):
     assert unparse_multistring(invalid_value) == invalid_value
 
 
-@pytest.mark.parametrize(
-    "values_list, expected_ms, has_plural_placeholder",
-    [
-        (["foo bar"], "foo bar", False),
-        (multistring("foo bar"), "foo bar", False),
-        (["foo", ""], "foo%s" % SEPARATOR, False),
-        (multistring(["foo", ""]), "foo%s" % SEPARATOR, False),
-        (multistring(["foo"]), "foo%s%s" % (SEPARATOR, PLURAL_PLACEHOLDER), True),
-        (["foo", "bar"], "foo%sbar" % SEPARATOR, False),
-        (multistring(["foo", "bar"]), "foo%sbar" % SEPARATOR, False),
-        (["foo", "bar", "baz"], "foo%sbar%sbaz" % (SEPARATOR, SEPARATOR), False),
-        (
-            multistring(["foo", "bar", "baz"]),
-            "foo%sbar%sbaz" % (SEPARATOR, SEPARATOR),
-            False,
-        ),
-    ],
-)
+@pytest.mark.parametrize("values_list, expected_ms, has_plural_placeholder", [(["foo bar"], "foo bar", False), (multistring("foo bar"), "foo bar", False), (["foo", ""], f"foo{SEPARATOR}", False), (multistring(["foo", ""]), f"foo{SEPARATOR}", False), (multistring(["foo"]), f"foo{SEPARATOR}{PLURAL_PLACEHOLDER}", True), (["foo", "bar"], f"foo{SEPARATOR}bar", False), (multistring(["foo", "bar"]), f"foo{SEPARATOR}bar", False), (["foo", "bar", "baz"], f"foo{SEPARATOR}bar{SEPARATOR}baz", False), (multistring(["foo", "bar", "baz"]), f"foo{SEPARATOR}bar{SEPARATOR}baz", False)])
 def test_unparse_multistring(values_list, expected_ms, has_plural_placeholder):
     if has_plural_placeholder:
         values_list.plural = True

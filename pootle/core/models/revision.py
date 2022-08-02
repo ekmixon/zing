@@ -30,10 +30,7 @@ class Revision(object):
             revision already set or not.
         :return: `True` if the initial value was set, `False` otherwise.
         """
-        if force:
-            return cls.set(cls.INITIAL)
-
-        return cls.add(cls.INITIAL)
+        return cls.set(cls.INITIAL) if force else cls.add(cls.INITIAL)
 
     @classmethod
     def get(cls):

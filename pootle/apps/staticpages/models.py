@@ -94,10 +94,10 @@ class AbstractPage(models.Model):
             return False
 
         obj = self.__class__.objects.get(pk=self.pk)
-        for field_name in self._track_fields:
-            if getattr(self, field_name) != getattr(obj, field_name):
-                return True
-        return False
+        return any(
+            getattr(self, field_name) != getattr(obj, field_name)
+            for field_name in self._track_fields
+        )
 
 
 class LegalPage(AbstractPage):
@@ -130,7 +130,7 @@ class Agreement(models.Model):
         )
 
     def __str__(self):
-        return "%s (%s@%s)" % (self.document, self.user, self.agreed_on)
+        return f"{self.document} ({self.user}@{self.agreed_on})"
 
     def save(self, **kwargs):
         # When updating always explicitly renew agreement date

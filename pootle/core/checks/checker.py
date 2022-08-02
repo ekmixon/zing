@@ -123,12 +123,10 @@ class UnitQualityCheck(object):
         new_checks = []
         for name in iter(self.check_failures.keys()):
             if name in self.original_checks:
-                # keep false-positive checks if check is active
-                unmute = (
+                if unmute := (
                     self.original_checks[name]["false_positive"]
                     and not self.keep_false_positives
-                )
-                if unmute:
+                ):
                     self.unmute_list.append(name)
                 # if the check is valid remove from the list and continue
                 del self.original_checks[name]
@@ -303,11 +301,9 @@ class QualityCheckUpdater(object):
         if self.translation_project is None:
             unit_fields.append(tp_key)
 
-        checker = None
-        if self.translation_project is not None:
-            # we only need to get the checker once if TP is set
+            checker = None
+        else:
             checker = self.get_checker(self.translation_project.id)
-
         translated = self.units.filter(state__gte=OBSOLETE).order_by("store", "index")
         updated_count = 0
         for unit in translated.values(*unit_fields).iterator():

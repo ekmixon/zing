@@ -57,17 +57,17 @@ def fix_accounts_alt_src_langs(apps, schema_editor):
     # Removing uniq/fk has to happen in this order.
     if uniq:
         # Remove unique constraint.
-        cursor.execute("ALTER TABLE %s " "  DROP KEY %s" % (table_name, uniq))
+        cursor.execute(f"ALTER TABLE {table_name}   DROP KEY {uniq}")
     if fk:
         # Remove foreign key constraint.
-        cursor.execute("ALTER TABLE %s " "  DROP FOREIGN KEY %s" % (table_name, fk))
+        cursor.execute(f"ALTER TABLE {table_name}   DROP FOREIGN KEY {fk}")
 
     if default:
         # Remove unique constraint from older migrated db.
-        cursor.execute("DROP INDEX pootleprofile_id" "   ON %s;" % (table_name))
+        cursor.execute(f"DROP INDEX pootleprofile_id   ON {table_name};")
 
     # Remove column.
-    cursor.execute("ALTER TABLE %s " "  DROP COLUMN pootleprofile_id" % (table_name))
+    cursor.execute(f"ALTER TABLE {table_name}   DROP COLUMN pootleprofile_id")
 
 
 class Migration(migrations.Migration):

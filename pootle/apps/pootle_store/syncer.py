@@ -90,16 +90,14 @@ class UnitSyncer(object):
         newunit.setcontext(self.context)
 
     def set_developer_notes(self, newunit):
-        notes = self.developer_notes
-        if notes:
+        if notes := self.developer_notes:
             newunit.addnote(notes, origin="developer")
 
     def set_fuzzy(self, newunit):
         newunit.markfuzzy(self.isfuzzy)
 
     def set_locations(self, newunit):
-        locations = self.locations
-        if locations:
+        if locations := self.locations:
             newunit.addlocations(locations)
 
     def set_obsolete(self, newunit):
@@ -110,8 +108,7 @@ class UnitSyncer(object):
         newunit.target = self.target
 
     def set_translator_notes(self, newunit):
-        notes = self.translator_notes
-        if notes:
+        if notes := self.translator_notes:
             newunit.addnote(notes, origin="translator")
 
     def set_unitid(self, newunit):
@@ -292,12 +289,13 @@ class StoreSyncer(object):
                 )
         changes["updated"] = self.sync_units(
             self.get_common_units(
-                set(self.dbid_index.get(uid) for uid in old_ids & new_ids),
+                {self.dbid_index.get(uid) for uid in old_ids & new_ids},
                 last_revision,
                 conservative,
             )
         )
-        return bool(file_changed or any(changes.values())), changes
+
+        return file_changed or any(changes.values()), changes
 
     def save_store(self, last_revision, user, changes, updated):
         # TODO conservative -> not overwrite
@@ -323,7 +321,7 @@ class StoreSyncer(object):
         filter_by = {"revision__lte": last_revision, "store": self.store}
         # Sync all units if first sync
         if self.store.last_sync_revision is not None:
-            filter_by.update({"revision__gt": self.store.last_sync_revision})
+            filter_by["revision__gt"] = self.store.last_sync_revision
         return filter_by
 
     def get_modified_units(self, last_revision):
@@ -364,7 +362,6 @@ class PoStoreSyncer(StoreSyncer):
     extension = "po"
 
     def get_latest_submission(self, mtime):
-        user_displayname = None
         user_email = None
         fields = (
             "submitter__username",
@@ -386,24 +383,25 @@ class PoStoreSyncer(StoreSyncer):
                 mtime = min(_mtime, mtime)
             except ObjectDoesNotExist:
                 pass
-        if user_email:
-            user_displayname = fullname.strip() if fullname.strip() else username
+        user_displayname = fullname.strip() or username if user_email else None
         return mtime, user_displayname, user_email
 
     def get_po_revision_date(self, mtime):
-        return "%s%s" % (mtime.strftime("%Y-%m-%d %H:%M"), poheader.tzstring())
+        return f'{mtime.strftime("%Y-%m-%d %H:%M")}{poheader.tzstring()}'
 
     def get_po_headers(self, mtime, user_displayname, user_email):
         headerupdates = {
             "PO_Revision_Date": self.get_po_revision_date(mtime),
-            "X_Generator": "Zing %s" % get_major_minor_version(),
+            "X_Generator": f"Zing {get_major_minor_version()}",
         }
+
         headerupdates["Last_Translator"] = (
             user_displayname
             and user_email
-            and ("%s <%s>" % (user_displayname, user_email))
+            and f"{user_displayname} <{user_email}>"
             or "Anonymous Zing User"
         )
+
         return headerupdates
 
     def update_po_headers(self, mtime, user_displayname, user_email):

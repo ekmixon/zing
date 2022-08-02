@@ -19,10 +19,7 @@ def list_empty(strings):
     useful for detecting empty multistrings and storing them as a
     simple empty string in db.
     """
-    for string in strings:
-        if len(string) > 0:
-            return False
-    return True
+    return all(len(string) <= 0 for string in strings)
 
 
 def parse_multistring(db_string):
@@ -45,7 +42,7 @@ def unparse_multistring(values):
     """Converts a `values` multistring object or a list of strings back to the
     in-DB multistring representation.
     """
-    if not (isinstance(values, multistring) or isinstance(values, list)):
+    if not isinstance(values, (multistring, list)):
         return values
 
     try:

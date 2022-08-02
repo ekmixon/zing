@@ -66,10 +66,12 @@ class ProjectManager(models.Manager):
         :return: An ordered dictionary of project tuples including
           (`fullname`, `disabled`) and `code` is a key in the dictionary.
         """
-        if not user.is_superuser:
-            cache_params = {"username": user.username}
-        else:
-            cache_params = {"is_admin": user.is_superuser}
+        cache_params = (
+            {"is_admin": user.is_superuser}
+            if user.is_superuser
+            else {"username": user.username}
+        )
+
         cache_key = make_method_key("Project", "cached_dict", cache_params)
         projects = cache.get(cache_key)
         if not projects:
@@ -248,7 +250,7 @@ class Project(models.Model, CachedTreeItem, ProjectURLMixin):
             key = iri_to_uri("projects:all")
         else:
             username = user.username
-            key = iri_to_uri("projects:accessible:%s" % username)
+            key = iri_to_uri(f"projects:accessible:{username}")
         user_projects = cache.get(key, None)
 
         if user_projects is not None:
@@ -268,8 +270,8 @@ class Project(models.Model, CachedTreeItem, ProjectURLMixin):
                 allow_usernames = [username]
                 forbid_usernames = [username, "default"]
             else:
-                allow_usernames = list(set([username, "default", "nobody"]))
-                forbid_usernames = list(set([username, "default"]))
+                allow_usernames = list({username, "default", "nobody"})
+                forbid_usernames = list({username, "default"})
 
             # Check root for `view` permissions
 
@@ -278,11 +280,7 @@ class Project(models.Model, CachedTreeItem, ProjectURLMixin):
                 user__username__in=allow_usernames,
                 positive_permissions__codename="view",
             )
-            if root_permissions.count():
-                user_projects = ALL_PROJECTS
-            else:
-                user_projects = set()
-
+            user_projects = ALL_PROJECTS if root_permissions.count() else set()
             # Check specific permissions at the project level
 
             accessible_projects = cls.objects.filter(
@@ -314,7 +312,7 @@ class Project(models.Model, CachedTreeItem, ProjectURLMixin):
 
     @property
     def pootle_path(self):
-        return "/projects/" + self.code + "/"
+        return f"/projects/{self.code}/"
 
     @property
     def is_terminology(self):
@@ -351,8 +349,9 @@ class Project(models.Model, CachedTreeItem, ProjectURLMixin):
         dirs = (
             Directory.objects.live()
             .order_by()
-            .filter(pootle_path__regex=r"^/[^/]*/%s/" % self.code)
+            .filter(pootle_path__regex=f"^/[^/]*/{self.code}/")
         )
+
         resources = sorted(
             {
                 to_tp_relative_path(pootle_path)

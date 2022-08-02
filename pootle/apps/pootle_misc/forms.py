@@ -53,9 +53,7 @@ def make_search_form(*args, **kwargs):
     request = kwargs.pop("request", None)
 
     if request is not None:
-        sparams_cookie = request.COOKIES.get("pootle-search")
-
-        if sparams_cookie:
+        if sparams_cookie := request.COOKIES.get("pootle-search"):
             import json
             import urllib.parse
 
@@ -65,7 +63,7 @@ def make_search_form(*args, **kwargs):
                 pass
             else:
                 if isinstance(initial_sparams, dict) and "sfields" in initial_sparams:
-                    kwargs.update({"initial": initial_sparams})
+                    kwargs["initial"] = initial_sparams
 
     return SearchForm(*args, **kwargs)
 

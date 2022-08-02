@@ -34,7 +34,7 @@ def pluralize_source(unit):
 
     count = len(unit.source.strings)
     if count == 1:
-        return [(0, unit.source.strings[0], "%s+%s" % (_("Singular"), _("Plural")))]
+        return [(0, unit.source.strings[0], f'{_("Singular")}+{_("Plural")}')]
 
     if count == 2:
         return [
@@ -42,10 +42,10 @@ def pluralize_source(unit):
             (1, unit.source.strings[1], _("Plural")),
         ]
 
-    forms = []
-    for i, source in enumerate(unit.source.strings):
-        forms.append((i, source, _("Plural Form %d" % i)))
-    return forms
+    return [
+        (i, source, _("Plural Form %d" % i))
+        for i, source in enumerate(unit.source.strings)
+    ]
 
 
 @register.filter("pluralize_target")
@@ -60,8 +60,11 @@ def pluralize_target(unit, nplurals=None):
             pass
     forms = []
     if nplurals is None:
-        for i, target in enumerate(unit.target.strings):
-            forms.append((i, target, _("Plural Form %d" % i)))
+        forms.extend(
+            (i, target, _("Plural Form %d" % i))
+            for i, target in enumerate(unit.target.strings)
+        )
+
     else:
         for i in range(nplurals):
             try:
@@ -76,14 +79,14 @@ def pluralize_target(unit, nplurals=None):
 @register.filter
 def pluralize_sugg(sugg):
     unit = sugg.unit
-    if not unit.hasplural():
-        return [(0, sugg.target, None)]
-
-    forms = []
-    for i, target in enumerate(sugg.target.strings):
-        forms.append((i, target, _("Plural Form %d" % i)))
-
-    return forms
+    return (
+        [
+            (i, target, _("Plural Form %d" % i))
+            for i, target in enumerate(sugg.target.strings)
+        ]
+        if unit.hasplural()
+        else [(0, sugg.target, None)]
+    )
 
 
 @register.tag(name="include_raw")

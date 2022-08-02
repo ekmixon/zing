@@ -35,7 +35,7 @@ def test_pending_agreements():
     )
 
     pending = list(LegalPage.objects.pending_user_agreement(foo_user))
-    assert len(pending) == 0
+    assert not pending
 
     # Let's add a new ToS
     tos = LegalPageFactory.create(active=True, modified_on=aware_datetime(2015, 1, 1),)
@@ -50,7 +50,7 @@ def test_pending_agreements():
     )
 
     pending = list(LegalPage.objects.pending_user_agreement(foo_user))
-    assert len(pending) == 0
+    assert not pending
 
     # The ToS were modified, `foo_user` must agree it
     tos.modified_on = aware_datetime(2015, 3, 3)

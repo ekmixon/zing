@@ -45,10 +45,8 @@ def test_get_uids_ordered(rf, default, admin, numbered_po):
     """Tests units can be retrieved while applying order filters."""
     view = get_uids
     tp = numbered_po.translation_project
-    url = "/?path=/%s/%s/&filter=incomplete&sort=newest&initial=true" % (
-        tp.language.code,
-        tp.project.code,
-    )
+    url = f"/?path=/{tp.language.code}/{tp.project.code}/&filter=incomplete&sort=newest&initial=true"
+
 
     request = create_api_request(rf, url=url, user=default)
     response = view(request)
@@ -70,7 +68,7 @@ def test_submit_with_suggestion_and_comment(client, request_users):
         client.force_login(user)
 
     url = "/xhr/units/%d/" % unit.id
-    edited_target = "Edited %s" % sugg.target_f
+    edited_target = f"Edited {sugg.target_f}"
     comment = "This is a comment!"
 
     response = client.post(
@@ -169,13 +167,14 @@ def test_reject_suggestion_with_comment(client, request_users):
 
     url = "/xhr/units/%d/suggestions/%d/" % (unit.id, sugg.id)
     response = client.delete(
-        url, "comment=%s" % comment, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        url, f"comment={comment}", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
     )
 
-    can_reject = (
-        check_permission("review", response.wsgi_request) or sugg.user.id == user.id
-    )
-    if can_reject:
+
+    if can_reject := (
+        check_permission("review", response.wsgi_request)
+        or sugg.user.id == user.id
+    ):
         assert response.status_code == 200
         rejected_suggestion = Suggestion.objects.get(id=sugg.id)
 
@@ -221,9 +220,10 @@ def test_submit_unit_plural(client, unit_plural, request_users):
 
     url = "/xhr/units/%d/" % unit_plural.id
     target = [
-        "%s" % unit_plural.target.strings[0],
-        "%s changed" % unit_plural.target.strings[1],
+        f"{unit_plural.target.strings[0]}",
+        f"{unit_plural.target.strings[1]} changed",
     ]
+
     response = client.post(
         url,
         {"target_f_0": target[0], "target_f_1": target[1]},

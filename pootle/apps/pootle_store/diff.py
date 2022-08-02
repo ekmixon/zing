@@ -197,12 +197,12 @@ class StoreDiff(object):
 
         for (tag, i1, i2, j1, j2) in self.opcodes:
             if tag == "insert":
-                update_index_delta = 0
                 insert_at = 0
                 if i1 > 0:
                     insert_at = units[active_uids[i1 - 1]]["index"]
 
                 next_index = insert_at + 1
+                update_index_delta = 0
                 if i1 < len(active_uids):
                     next_index = units[active_uids[i1]]["index"]
                     update_index_delta = j2 - j1 - next_index + insert_at + 1
@@ -261,9 +261,7 @@ class StoreDiff(object):
             "add": self.get_units_to_add(),
             "update": self.get_units_to_update(),
         }
-        if self.has_changes(diff):
-            return diff
-        return None
+        return diff if self.has_changes(diff) else None
 
     def get_indexes_to_update(self):
         offset = 0
@@ -326,24 +324,21 @@ class StoreDiff(object):
                 continue
 
             update_ids.update(
-                set(
+                {
                     self.target.units[uid]["id"]
                     for uid in self.target.active_uids[i1:i2]
                     if (
                         uid in self.source.units
                         and self.source.get_unit(uid) != self.target.get_unit(uid)
                     )
-                )
+                }
             )
+
 
         return update_ids
 
     def has_changes(self, diff):
-        for k, v in diff.items():
-            if k == "update":
-                if len(v[0]) > 0:
-                    return True
-            else:
-                if len(v) > 0:
-                    return True
-        return False
+        return any(
+            k == "update" and len(v[0]) > 0 or k != "update" and len(v) > 0
+            for k, v in diff.items()
+        )

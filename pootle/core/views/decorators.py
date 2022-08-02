@@ -28,11 +28,7 @@ def check_directory_permission(permission_codename, request, directory):
         if context is None:
             context = getattr(directory, "project", None)
 
-        if context is None:
-            return True
-
-        return context.is_accessible_by(request.user)
-
+        return True if context is None else context.is_accessible_by(request.user)
     return (
         "administrate" in request.permissions
         or permission_codename in request.permissions

@@ -28,10 +28,7 @@ def to_db(value):
     """Flatten the given value (string, list of plurals or multistring) into
     the database string representation.
     """
-    if value is None:
-        return None
-
-    return unparse_multistring(value)
+    return None if value is None else unparse_multistring(value)
 
 
 def to_python(value):
@@ -61,9 +58,7 @@ class CastOnAssignDescriptor(object):
         self.field = field
 
     def __get__(self, obj, type=None):
-        if obj is None:
-            return self
-        return obj.__dict__[self.field.name]
+        return self if obj is None else obj.__dict__[self.field.name]
 
     def __set__(self, obj, value):
         obj.__dict__[self.field.name] = self.field.to_python(value)
@@ -134,19 +129,17 @@ class TranslationStoreFieldFile(FieldFile):
         if not hasattr(self, "_realpath"):
             # Django's db.models.fields.files.FieldFile raises ValueError if
             # if the file field has no name - and tests "if self" to check
-            if self:
-                self._realpath = os.path.realpath(self.path)
-            else:
-                self._realpath = ""
+            self._realpath = os.path.realpath(self.path) if self else ""
         return self._realpath
 
     @property
     def realpath(self):
         """Get real path from cache before attempting to check for symlinks."""
-        if not hasattr(self, "_store_tuple"):
-            return self._get_realpath()
-        else:
-            return self._store_tuple.realpath
+        return (
+            self._store_tuple.realpath
+            if hasattr(self, "_store_tuple")
+            else self._get_realpath()
+        )
 
     @property
     def store(self):
@@ -160,10 +153,7 @@ class TranslationStoreFieldFile(FieldFile):
         """Add translation store to dictionary cache, replace old cached
         version if needed.
         """
-        if self.exists():
-            mod_info = self.getpomtime()
-        else:
-            mod_info = 0
+        mod_info = self.getpomtime() if self.exists() else 0
         if not hasattr(self, "_store_tuple") or self._store_tuple.mod_info != mod_info:
             try:
                 self._store_tuple = self._store_cache[self.path]

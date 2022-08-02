@@ -44,15 +44,13 @@ def get_legalpages(parser, token):
         "as context_name" % dict(tag_name=bits[0])
     )
 
-    if len(bits) == 3:
-
-        if bits[1] != "as":
-            raise template.TemplateSyntaxError(syntax_message)
-        context_name = bits[2]
-
-        return LegalPageNode(context_name)
-    else:
+    if len(bits) != 3:
         raise template.TemplateSyntaxError(syntax_message)
+    if bits[1] != "as":
+        raise template.TemplateSyntaxError(syntax_message)
+    context_name = bits[2]
+
+    return LegalPageNode(context_name)
 
 
 @register.tag
@@ -73,7 +71,10 @@ def staticpage_url(parser, token):
     if len(bits) == 2:
         virtual_path = bits[1]
 
-        if not (virtual_path[0] == virtual_path[-1] and virtual_path[0] in ('"', "'")):
+        if virtual_path[0] != virtual_path[-1] or virtual_path[0] not in (
+            '"',
+            "'",
+        ):
             raise template.TemplateSyntaxError(quote_message)
 
         return StaticPageURLNode(virtual_path[1:-1])

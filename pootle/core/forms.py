@@ -89,7 +89,7 @@ class MathCaptchaForm(forms.Form):
     def _generate_captcha(self):
         """Generate question and return it along with correct answer."""
         a, b = randint(1, 9), randint(1, 9)
-        return ("%s+%s" % (a, b), a + b)
+        return f"{a}+{b}", a + b
 
     def _make_token(self, q, a, expires):
         to_encode = jsonify({"q": q, "expires": expires}).encode("utf-8")
@@ -138,10 +138,10 @@ class MathCaptchaForm(forms.Form):
             raise forms.ValidationError("Invalid captcha!")
 
     def clean_captcha_answer(self):
-        a = self.A_RE.match(self.cleaned_data.get("captcha_answer"))
-        if not a:
+        if a := self.A_RE.match(self.cleaned_data.get("captcha_answer")):
+            return int(a.group(0))
+        else:
             raise forms.ValidationError(_("Enter a number"))
-        return int(a.group(0))
 
     def clean(self):
         """Check captcha answer."""
@@ -150,8 +150,7 @@ class MathCaptchaForm(forms.Form):
         if "captcha_answer" not in cd:
             return cd
 
-        t = cd.get("captcha_token")
-        if t:
+        if t := cd.get("captcha_token"):
             form_sign = self._sign(t["q"], cd["captcha_answer"], t["expires"])
             if form_sign != t["sign"]:
                 self._errors["captcha_answer"] = [_("Incorrect")]
@@ -174,6 +173,8 @@ class PathForm(forms.Form):
         return self.cleaned_data.get("path", "/")
 
     def clean_include_disabled(self):
-        if not self.request_user.is_superuser:
-            return False
-        return self.cleaned_data["include_disabled"]
+        return (
+            self.cleaned_data["include_disabled"]
+            if self.request_user.is_superuser
+            else False
+        )

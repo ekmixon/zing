@@ -132,7 +132,7 @@ class TreeItem(object):
     def _calc_suggestion_count(self):
         self.initialize_children()
         return self._get_suggestion_count() + sum(
-            [item.get_cached(CachedMethods.SUGGESTIONS) for item in self.children]
+            item.get_cached(CachedMethods.SUGGESTIONS) for item in self.children
         )
 
     def _calc_wordcount_stats(self):
@@ -201,7 +201,7 @@ class TreeItem(object):
         }
 
         try:
-            result.update(self._calc_wordcount_stats())
+            result |= self._calc_wordcount_stats()
         except NoCachedStats:
             pass
 
@@ -252,7 +252,7 @@ class CachedTreeItem(TreeItem):
         super().__init__()
 
     def make_cache_key(self, name):
-        return iri_to_uri("%s:%s" % (self.cache_key, name))
+        return iri_to_uri(f"{self.cache_key}:{name}")
 
     def can_be_updated(self):
         """This method will be overridden in descendants"""
@@ -332,7 +332,7 @@ class CachedTreeItem(TreeItem):
         }
 
         try:
-            result.update(self.get_cached(CachedMethods.WORDCOUNT_STATS))
+            result |= self.get_cached(CachedMethods.WORDCOUNT_STATS)
         except NoCachedStats:
             pass
 
@@ -428,8 +428,7 @@ class CachedTreeItem(TreeItem):
         (should be called from RQ job procedure after cache is updated)
         """
         r_con = get_connection()
-        job = get_current_job()
-        if job:
+        if job := get_current_job():
             logger.debug(
                 "UNREGISTER %s (-%s) where job_id=%s", self.cache_key, decrement, job.id
             )
@@ -440,16 +439,13 @@ class CachedTreeItem(TreeItem):
     def get_dirty_score(self):
         r_con = get_connection()
         rv = r_con.zscore(KEY_DIRTY_TREEITEMS, self.cache_key)
-        if rv is None:
-            return 0
-        return rv
+        return 0 if rv is None else rv
 
     def update_dirty_cache(self):
         """Add a RQ job which updates dirty cached stats of current TreeItem
         to the default queue
         """
-        _dirty = self._dirty_cache.copy()
-        if _dirty:
+        if _dirty := self._dirty_cache.copy():
             self._dirty_cache = set()
             self.register_all_dirty()
             create_update_cache_job_wrapper(self, _dirty)
@@ -542,9 +538,7 @@ class JobWrapper(object):
         """
         key = self.get_job_params_key()
         data = self.connection.get(key)
-        if data is not None:
-            return loads(data)
-        return None
+        return loads(data) if data is not None else None
 
     def set_job_params(self, pipeline):
         """

@@ -89,23 +89,20 @@ class UnitManager(models.Manager):
         if not (dir_path or filename):
             return units_qs
 
-        pootle_path = "/%s/%s/%s%s" % (
-            language_code or LANGUAGE_REGEX,
-            project_code or PROJECT_REGEX,
-            dir_path or "",
-            filename or "",
-        )
+        pootle_path = f'/{language_code or LANGUAGE_REGEX}/{project_code or PROJECT_REGEX}/{dir_path or ""}{filename or ""}'
+
         if language_code and project_code:
-            if filename:
-                return units_qs.filter(store__pootle_path=pootle_path)
-            else:
-                return units_qs.filter(store__pootle_path__startswith=pootle_path)
-        else:
+            return (
+                units_qs.filter(store__pootle_path=pootle_path)
+                if filename
+                else units_qs.filter(store__pootle_path__startswith=pootle_path)
+            )
+
             # we need to use a regex in this case as lang or proj are not
             # set
-            if filename:
-                pootle_path = "%s$" % pootle_path
-            return units_qs.filter(store__pootle_path__regex=pootle_path)
+        if filename:
+            pootle_path = f"{pootle_path}$"
+        return units_qs.filter(store__pootle_path__regex=pootle_path)
 
 
 class StoreManager(models.Manager):
@@ -114,5 +111,5 @@ class StoreManager(models.Manager):
         return self.filter(obsolete=False)
 
     def create(self, *args, **kwargs):
-        kwargs["pootle_path"] = "%s%s" % (kwargs["parent"].pootle_path, kwargs["name"])
+        kwargs["pootle_path"] = f'{kwargs["parent"].pootle_path}{kwargs["name"]}'
         return super().create(*args, **kwargs)

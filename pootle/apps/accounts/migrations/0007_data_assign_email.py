@@ -12,7 +12,7 @@ def assign_email_to_default_users(apps, schema_editor):
     for username in users:
         try:
             u = User.objects.get(username=username)
-            u.email = "%s@example.com" % (username,)
+            u.email = f"{username}@example.com"
             u.save()
         except User.DoesNotExist:
             pass

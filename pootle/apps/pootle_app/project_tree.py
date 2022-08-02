@@ -35,9 +35,9 @@ def get_or_make_language_dir(project_dir, language, make_dirs):
 
     if not make_dirs:
         raise IndexError(
-            "Directory not found for language %s, project %s"
-            % (language.code, project_dir)
+            f"Directory not found for language {language.code}, project {project_dir}"
         )
+
 
     # If no matching directories can be found, create them
     language_dir = os.path.join(project_dir, language.code)
@@ -47,9 +47,11 @@ def get_or_make_language_dir(project_dir, language, make_dirs):
 
 def get_language_dir(project_dir, language, make_dirs):
     language_dir = os.path.join(project_dir, language.code)
-    if not os.path.exists(language_dir):
-        return get_or_make_language_dir(project_dir, language, make_dirs)
-    return language_dir
+    return (
+        language_dir
+        if os.path.exists(language_dir)
+        else get_or_make_language_dir(project_dir, language, make_dirs)
+    )
 
 
 def get_translation_project_dir(language, project_dir, make_dirs=False):
@@ -73,11 +75,10 @@ def split_files_and_dirs(real_dir):
         if is_hidden_file(child_path):
             continue
         full_child_path = os.path.join(real_dir, child_path)
-        should_include_file = (
+        if should_include_file := (
             os.path.isfile(full_child_path)
             and os.path.splitext(full_child_path)[1][1:] in FILE_EXTENSIONS
-        )
-        if should_include_file:
+        ):
             files.append(child_path)
         elif os.path.isdir(full_child_path):
             dirs.append(child_path)
@@ -96,7 +97,6 @@ def add_items(fs_items_set, db_items, create_or_resurrect_db_item, parent):
     :return: list of all items, list of newly added items
     :rtype: tuple
     """
-    items = []
     new_items = []
     db_items_set = set(db_items)
 
@@ -108,9 +108,7 @@ def add_items(fs_items_set, db_items, create_or_resurrect_db_item, parent):
     if len(items_to_delete) > 0:
         parent.update_all_cache()
 
-    for name in db_items_set - items_to_delete:
-        items.append(db_items[name])
-
+    items = [db_items[name] for name in db_items_set - items_to_delete]
     for name in items_to_create:
         item = create_or_resurrect_db_item(name)
         items.append(item)
@@ -165,11 +163,12 @@ def add_files(translation_project, relative_dir, db_dir):
     file_set = set(files)
     dir_set = set(dirs)
 
-    existing_stores = dict(
-        (store.name, store)
+    existing_stores = {
+        store.name: store
         for store in db_dir.child_stores.live().exclude(file="").iterator()
-    )
-    existing_dirs = dict((dir.name, dir) for dir in db_dir.child_dirs.live().iterator())
+    }
+
+    existing_dirs = {dir.name: dir for dir in db_dir.child_dirs.live().iterator()}
 
     files, new_files = add_items(
         file_set,

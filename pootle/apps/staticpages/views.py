@@ -29,7 +29,7 @@ class PageModelMixin(object):
     """
 
     def dispatch(self, request, *args, **kwargs):
-        self.page_type = kwargs.get("page_type", None)
+        self.page_type = kwargs.get("page_type")
         self.model = {"legal": LegalPage, "static": StaticPage}.get(self.page_type)
 
         if self.model is None:

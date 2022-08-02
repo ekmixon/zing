@@ -28,11 +28,7 @@ class TranslationTask(object):
         self.words_left = words_left
 
     def __repr__(self):
-        return "<%s: %s (%s)>" % (
-            self.__class__.__name__,
-            self.due_date.pootle_path,
-            self.due_date.due_on,
-        )
+        return f"<{self.__class__.__name__}: {self.due_date.pootle_path} ({self.due_date.due_on})>"
 
     @property
     def days_left(self):
@@ -44,7 +40,7 @@ class TranslationTask(object):
             return 1
 
         factor = (self.words_left * self.weight / self.days_left) / WORDS_PER_DAY
-        return 1 if factor > 1 else factor
+        return min(factor, 1)
 
     @property
     def data(self):

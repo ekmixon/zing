@@ -39,14 +39,12 @@ def rq_stats():
         status_msg = _("Stopped")
 
     failed_job_registry = FailedJobRegistry(queue.name, queue.connection)
-    result = {
+    return {
         "job_count": queue.count,
         "failed_job_count": len(failed_job_registry),
         "is_running": is_running,
         "status_msg": status_msg,
     }
-
-    return result
 
 
 def checks():

@@ -200,11 +200,8 @@ def set_project_resource(request, path_obj, dir_path, filename):
     user_tps = user_tps.filter(project__code=path_obj.code,).values_list(
         "pootle_path", flat=True
     )
-    user_tps_regex = "^%s" % u"|".join(list(user_tps))
-    sql_regex = "REGEXP"
-    if connection.vendor == "postgresql":
-        sql_regex = "~"
-
+    user_tps_regex = f'^{u"|".join(list(user_tps))}'
+    sql_regex = "~" if connection.vendor == "postgresql" else "REGEXP"
     if filename:
         query_pootle_path = query_pootle_path + filename
         pootle_path = pootle_path + filename
@@ -215,24 +212,26 @@ def set_project_resource(request, path_obj, dir_path, filename):
             .extra(
                 where=[
                     "pootle_store_store.pootle_path LIKE %s",
-                    "pootle_store_store.pootle_path " + sql_regex + " %s",
+                    f"pootle_store_store.pootle_path {sql_regex} %s",
                 ],
                 params=[query_pootle_path, user_tps_regex],
             )
             .select_related("translation_project__language")
         )
+
     else:
         resources = (
             Directory.objects.live()
             .extra(
                 where=[
                     "pootle_app_directory.pootle_path LIKE %s",
-                    "pootle_app_directory.pootle_path " + sql_regex + " %s",
+                    f"pootle_app_directory.pootle_path {sql_regex} %s",
                 ],
                 params=[query_pootle_path, user_tps_regex],
             )
             .select_related("parent")
         )
+
 
     if not resources.exists():
         raise Http404

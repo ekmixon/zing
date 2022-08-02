@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
         start = datetime.datetime.now()
         for user_pk, username in users.values_list("pk", "username"):
-            self.stdout.write("Processing user %s..." % username)
+            self.stdout.write(f"Processing user {username}...")
             scorelog_qs = ScoreLog.objects.filter(user=user_pk).select_related(
                 "submission", "submission__suggestion", "submission__unit"
             )
@@ -72,4 +72,4 @@ class Command(BaseCommand):
             self.stdout.write("Score for user %s set to %.3f" % (username, user_score))
             User.objects.filter(id=user_pk).update(score=user_score)
         end = datetime.datetime.now()
-        self.stdout.write("All done in %s." % (end - start))
+        self.stdout.write(f"All done in {end - start}.")

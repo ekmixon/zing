@@ -161,7 +161,7 @@ class Language(models.Model, TreeItem):
 
     @property
     def pootle_path(self):
-        return "/%s/" % self.code
+        return f"/{self.code}/"
 
     @property
     def name(self):
@@ -197,13 +197,13 @@ class Language(models.Model, TreeItem):
                 return None
 
     def __str__(self):
-        return "%s - %s" % (self.name, self.code)
+        return f"{self.name} - {self.code}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return u"<%s: %s>" % (self.__class__.__name__, self.fullname)
+        return f"<{self.__class__.__name__}: {self.fullname}>"
 
     def save(self, *args, **kwargs):
         # create corresponding directory object

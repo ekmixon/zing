@@ -66,7 +66,7 @@ class Stats(object):
         return self.get_value(CachedMethods.LAST_UPDATED)
 
     def make_cache_key(self, name):
-        return iri_to_uri("%s:%s" % (self.path, name))
+        return iri_to_uri(f"{self.path}:{name}")
 
     def get_value(self, name, default=None):
         """get stat value from cache"""

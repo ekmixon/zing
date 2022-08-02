@@ -43,8 +43,7 @@ class ProxyTimelineUser(object):
     def display_name(self):
         return (
             self.submission["submitter__full_name"].strip()
-            if self.submission["submitter__full_name"].strip()
-            else self.submission["submitter__username"]
+            or self.submission["submitter__username"]
         )
 
     def get_absolute_url(self):
@@ -65,9 +64,9 @@ def _get_suggestion_description(submission):
     )
     display_name = (
         submission["suggestion__user__full_name"].strip()
-        if submission["suggestion__user__full_name"].strip()
-        else submission["suggestion__user__username"].strip()
+        or submission["suggestion__user__username"].strip()
     )
+
     params = {"author": format_html(u'<a href="{}">{}</a>', user_url, display_name)}
     Comment = get_comment_model()
     try:
@@ -77,13 +76,10 @@ def _get_suggestion_description(submission):
     except Comment.DoesNotExist:
         comment = None
     else:
-        params.update(
-            {
-                "comment": format_html(
-                    u'<span class="comment">{}</span>', comment.comment
-                ),
-            }
+        params["comment"] = format_html(
+            u'<span class="comment">{}</span>', comment.comment
         )
+
 
     if comment:
         sugg_accepted_desc = _(
@@ -181,26 +177,24 @@ def _calculate_timeline(request, unit):
                 entry["old_value"] = STATES_MAP[int(to_python(item["old_value"]))]
                 entry["new_value"] = STATES_MAP[int(to_python(item["new_value"]))]
             elif item["suggestion_id"]:
-                entry.update(
-                    {
-                        "suggestion_text": item["suggestion__target_f"],
-                        "suggestion_description": mark_safe(
-                            _get_suggestion_description(item)
-                        ),
-                    }
-                )
+                entry |= {
+                    "suggestion_text": item["suggestion__target_f"],
+                    "suggestion_description": mark_safe(
+                        _get_suggestion_description(item)
+                    ),
+                }
+
             elif item["quality_check__name"]:
                 check_name = item["quality_check__name"]
                 check_url = u"".join(
                     [reverse("pootle-checks-descriptions"), "#", check_name]
                 )
-                entry.update(
-                    {
-                        "check_name": check_name,
-                        "check_display_name": check_names[check_name],
-                        "checks_url": check_url,
-                    }
-                )
+                entry |= {
+                    "check_name": check_name,
+                    "check_display_name": check_names[check_name],
+                    "checks_url": check_url,
+                }
+
             else:
                 entry["new_value"] = to_python(item["new_value"])
 

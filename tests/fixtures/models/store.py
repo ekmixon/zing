@@ -35,16 +35,19 @@ DEFAULT_STORE_UNITS_3 = [
 ]
 
 UPDATED_STORE_UNITS_1 = [
-    (src, "UPDATED %s" % target) for src, target in DEFAULT_STORE_UNITS_1
+    (src, f"UPDATED {target}") for src, target in DEFAULT_STORE_UNITS_1
 ]
+
 
 UPDATED_STORE_UNITS_2 = [
-    (src, "UPDATED %s" % target) for src, target in DEFAULT_STORE_UNITS_2
+    (src, f"UPDATED {target}") for src, target in DEFAULT_STORE_UNITS_2
 ]
 
+
 UPDATED_STORE_UNITS_3 = [
-    (src, "UPDATED %s" % target) for src, target in DEFAULT_STORE_UNITS_3
+    (src, f"UPDATED {target}") for src, target in DEFAULT_STORE_UNITS_3
 ]
+
 
 DEFAULT_STORE_TEST_SETUP = [
     (DEFAULT_STORE_UNITS_1),
@@ -157,17 +160,14 @@ def _setup_store_test(store, member, test):
 
     for units in setup:
         store_revision = store.get_max_unit_revision()
-        print("setup store: %s %s" % (store_revision, units))
+        print(f"setup store: {store_revision} {units}")
         update_store(store, store_revision=store_revision, units=units, user=member)
         for unit in store.units:
-            comment = "Set up unit(%s) with store_revision: %s" % (
-                unit.source_f,
-                store_revision,
-            )
+            comment = f"Set up unit({unit.source_f}) with store_revision: {store_revision}"
             _create_comment_on_unit(unit, member, comment)
 
     store_revision = test["store_revision"]
-    units_before_update = [unit for unit in store.unit_set.all().order_by("index")]
+    units_before_update = list(store.unit_set.all().order_by("index"))
 
     if store_revision == "MAX":
         store_revision = store.get_max_unit_revision()
@@ -233,9 +233,8 @@ def _require_store(tp, po_dir, name):
         store = Store.objects.create(
             file=file_path, parent=parent_dir, name=name, translation_project=tp,
         )
-    if store.file.exists():
-        if store.state < PARSED:
-            store.update(store.file.store)
+    if store.file.exists() and store.state < PARSED:
+        store.update(store.file.store)
 
     return store
 
@@ -357,10 +356,9 @@ def store_po(tp0):
         project__code="project0", language__code="language0"
     )
 
-    store = StoreDBFactory(
+    return StoreDBFactory(
         parent=tp.directory, translation_project=tp, name="test_store.po"
     )
-    return store
 
 
 @pytest.fixture
@@ -403,6 +401,8 @@ def dummy_store_structure_syncer():
             assert unit_class == self.expected["unit_class"]
             return self.unit, unit_class
 
+
+
     class DummyDiskStore(object):
         def __init__(self, expected):
             self.expected = expected
@@ -410,13 +410,15 @@ def dummy_store_structure_syncer():
 
         @cached_property
         def _units(self):
-            for unit in self.expected["new_units"]:
-                yield unit
+            yield from self.expected["new_units"]
 
         def addunit(self, newunit):
             unit, unit_class = newunit
             assert unit == next(self._units).unit
             assert unit_class == self.UnitClass
+
+
+
 
     class DummyStoreSyncer(StoreSyncer):
         def __init__(self, *args, **kwargs):
@@ -429,13 +431,13 @@ def dummy_store_structure_syncer():
 
         @cached_property
         def _units(self):
-            for unit in self.expected["obsolete_units"]:
-                yield unit
+            yield from self.expected["obsolete_units"]
 
         def obsolete_unit(self, unit, conservative):
             assert conservative == self.expected["conservative"]
             assert unit == next(self._units)
             return self.expected["obsolete_delete"]
+
 
     return DummyStoreSyncer, DummyUnit
 

@@ -237,7 +237,7 @@ def test_apiview_put(rf):
     assert "errors" in response_data
 
     # Specify missing fields
-    update_data.update({"email": user.email})
+    update_data["email"] = user.email
     request = create_api_request(rf, "put", data=update_data)
 
     response = view(request, id=user.id)
@@ -250,7 +250,7 @@ def test_apiview_put(rf):
     assert response_data["email"] == user.email
 
     # View with a custom form
-    update_data.update({"password": "d34db33f"})
+    update_data["password"] = "d34db33f"
     view = WriteableUserSettingsAPIView.as_view()
     request = create_api_request(rf, "put", data=update_data)
 

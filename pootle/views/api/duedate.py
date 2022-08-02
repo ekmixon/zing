@@ -63,10 +63,7 @@ class CanAdminPath(object):
             raise Http404
 
         can_admin_path = check_user_permission(user, "administrate", ctx_obj.directory)
-        if not can_admin_path:
-            return False
-
-        return True
+        return bool(can_admin_path)
 
     def has_permission(self, request, view):
         if request.method != "POST":

@@ -66,7 +66,7 @@ def get_all_pootle_paths(pootle_path):
     while True:
         chunks = pootle_path.rsplit(u"/", 2)
         slash_count = chunks[0].count(u"/")
-        pootle_path = chunks[0] + u"/"
+        pootle_path = f"{chunks[0]}/"
         if slash_count > 1:
             res.append(pootle_path)
         else:
@@ -74,7 +74,7 @@ def get_all_pootle_paths(pootle_path):
                 # omit chunk[0] which is a language_code
                 # since language is inherited from a (non cached) TreeItem
                 # chunk[1] is a project_code
-                res.append(u"/projects/%s/" % chunks[1])
+                res.append(f"/projects/{chunks[1]}/")
             break
 
     return res
@@ -130,27 +130,27 @@ def get_editor_filter(
     filter_string = ""
 
     if state is not None:
-        filter_string = "#filter=%s" % state
+        filter_string = f"#filter={state}"
         if user is not None:
-            filter_string += "&user=%s" % user
+            filter_string += f"&user={user}"
         if month is not None:
-            filter_string += "&month=%s" % month
+            filter_string += f"&month={month}"
     elif check is not None:
-        filter_string = "#filter=checks&checks=%s" % check
+        filter_string = f"#filter=checks&checks={check}"
     elif check_category is not None:
-        filter_string = "#filter=checks&category=%s" % check_category
+        filter_string = f"#filter=checks&category={check_category}"
     elif search is not None:
-        filter_string = "#search=%s" % urllib.parse.quote_plus(search)
+        filter_string = f"#search={urllib.parse.quote_plus(search)}"
         if sfields is not None:
             if not isinstance(sfields, list):
                 sfields = [sfields]
-            filter_string += "&sfields=%s" % ",".join(sfields)
+            filter_string += f'&sfields={",".join(sfields)}'
 
     if sort is not None:
         if filter_string:
-            filter_string += "&sort=%s" % sort
+            filter_string += f"&sort={sort}"
         else:
-            filter_string = "#sort=%s" % sort
+            filter_string = f"#sort={sort}"
 
     if include_disabled:
         filter_string += filter_string and "&all" or "#all"
@@ -170,9 +170,7 @@ def get_previous_url(request):
 
     :param request: Django's request object.
     """
-    referer_url = request.META.get("HTTP_REFERER", "")
-
-    if referer_url:
+    if referer_url := request.META.get("HTTP_REFERER", ""):
         parsed_referer = urllib.parse.urlparse(referer_url)
         referer_host = parsed_referer.netloc
         referer_path = parsed_referer.path
@@ -186,7 +184,7 @@ def get_previous_url(request):
 
             # But ensure `?details` is not missed out
             if "details" in referer_query:
-                referer_url = "%s?details" % referer_url
+                referer_url = f"{referer_url}?details"
 
             return referer_url
 

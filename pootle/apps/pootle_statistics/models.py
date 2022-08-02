@@ -93,9 +93,7 @@ class SubmissionQuerySet(models.QuerySet):
         obj.query.set_limits(high=1)
         obj.query.clear_ordering(force_empty=True)
         # add pk as secondary ordering for Submissions
-        obj.query.add_ordering(
-            "%s%s" % (direction, order_by), "%s%s" % (direction, "pk")
-        )
+        obj.query.add_ordering(f"{direction}{order_by}", f"{direction}pk")
         return obj.get()
 
     def earliest(self, field_name=None):
@@ -228,10 +226,7 @@ class Submission(models.Model):
     mt_similarity = models.FloatField(blank=True, null=True)
 
     def __str__(self):
-        return "%s (%s)" % (
-            self.creation_time.strftime("%Y-%m-%d %H:%M"),
-            str(self.submitter),
-        )
+        return f'{self.creation_time.strftime("%Y-%m-%d %H:%M")} ({str(self.submitter)})'
 
     @cached_property
     def max_similarity(self):
@@ -241,10 +236,10 @@ class Submission(models.Model):
     def needs_scorelog(self):
         """Returns ``True`` if the submission needs to log its score."""
         # Changing from untranslated state won't record a score change
-        if self.field == SubmissionFields.STATE and int(self.old_value) == UNTRANSLATED:
-            return False
-
-        return True
+        return (
+            self.field != SubmissionFields.STATE
+            or int(self.old_value) != UNTRANSLATED
+        )
 
     def get_submission_info(self):
         """Returns a dictionary describing the submission.
@@ -256,41 +251,35 @@ class Submission(models.Model):
         result = {}
 
         if self.unit is not None:
-            result.update({"source": truncatechars(self.unit, 50), "uid": self.unit.id})
+            result |= {"source": truncatechars(self.unit, 50), "uid": self.unit.id}
 
             if self.quality_check is not None:
                 check_name = self.quality_check.name
-                result.update(
-                    {
-                        "check": check_name,
-                        "check_displayname": check_names.get(check_name, check_name),
-                    }
-                )
+                result |= {
+                    "check": check_name,
+                    "check_displayname": check_names.get(check_name, check_name),
+                }
+
 
         if self.suggestion and self.type in (
             SubmissionTypes.SUGG_ACCEPT,
             SubmissionTypes.SUGG_REJECT,
         ):
             displayuser = self.suggestion.reviewer
+        elif self.submitter:
+            displayuser = self.submitter
         else:
-            # Sadly we may not have submitter information in all the
-            # situations yet
-            # TODO check if it is true
-            if self.submitter:
-                displayuser = self.submitter
-            else:
-                User = get_user_model()
-                displayuser = User.objects.get_nobody_user()
+            User = get_user_model()
+            displayuser = User.objects.get_nobody_user()
 
-        result.update(
-            {
-                "email": displayuser.email_hash,
-                "displayname": displayuser.display_name,
-                "username": displayuser.username,
-                "type": self.type,
-                "mtime": int(dateformat.format(self.creation_time, "U")),
-            }
-        )
+        result |= {
+            "email": displayuser.email_hash,
+            "displayname": displayuser.display_name,
+            "username": displayuser.username,
+            "type": self.type,
+            "mtime": int(dateformat.format(self.creation_time, "U")),
+        }
+
 
         # TODO Fix bug 3011 and remove the following code related to
         # TranslationActionTypes.
@@ -299,27 +288,22 @@ class Submission(models.Model):
             translation_action_type = None
             try:
                 if self.field == SubmissionFields.TARGET:
-                    if self.new_value != "":
-                        # Note that we analyze current unit state:
-                        # if this submission is not last unit state
-                        # can be changed
-                        if self.unit.state == TRANSLATED:
-
-                            if self.old_value == "":
-                                translation_action_type = (
-                                    TranslationActionTypes.TRANSLATED
-                                )
-                            else:
-                                translation_action_type = TranslationActionTypes.EDITED
-                        elif self.unit.state == FUZZY:
-                            if self.old_value == "":
-                                translation_action_type = (
-                                    TranslationActionTypes.PRE_TRANSLATED
-                                )
-                            else:
-                                translation_action_type = TranslationActionTypes.EDITED
-                    else:
+                    if self.new_value == "":
                         translation_action_type = TranslationActionTypes.REMOVED
+                    elif self.unit.state == TRANSLATED and self.old_value == "":
+                        translation_action_type = (
+                            TranslationActionTypes.TRANSLATED
+                        )
+                    elif (
+                        self.unit.state == TRANSLATED
+                        or self.unit.state == FUZZY
+                        and self.old_value != ""
+                    ):
+                        translation_action_type = TranslationActionTypes.EDITED
+                    elif self.unit.state == FUZZY:
+                        translation_action_type = (
+                            TranslationActionTypes.PRE_TRANSLATED
+                        )
                 elif self.field == SubmissionFields.STATE:
                     # Note that a submission where field is STATE
                     # should be created before a submission where
@@ -328,7 +312,8 @@ class Submission(models.Model):
                     translation_action_type = {
                         TRANSLATED: TranslationActionTypes.REVIEWED,
                         FUZZY: TranslationActionTypes.NEEDS_WORK,
-                    }.get(int(to_python(self.new_value)), None)
+                    }.get(int(to_python(self.new_value)))
+
 
             except AttributeError:
                 return result
@@ -343,11 +328,11 @@ class Submission(models.Model):
         if not self.needs_scorelog():
             return
 
-        scorelogs_created = []
-        for score in ScoreLog.get_scorelogs(submission=self):
-            if "action_code" in score and score["user"] is not None:
-                scorelogs_created.append(ScoreLog(**score))
-        if scorelogs_created:
+        if scorelogs_created := [
+            ScoreLog(**score)
+            for score in ScoreLog.get_scorelogs(submission=self)
+            if "action_code" in score and score["user"] is not None
+        ]:
             self.scorelog_set.add(*scorelogs_created, bulk=False)
 
 
@@ -433,11 +418,7 @@ class ScoreLog(models.Model):
         }
 
         translator_id = submission.unit.submitted_by_id
-        if submission.unit.reviewed_by_id:
-            reviewer_id = submission.unit.reviewed_by_id
-        else:
-            reviewer_id = translator_id
-
+        reviewer_id = submission.unit.reviewed_by_id or translator_id
         previous_translator_score = score_dict.copy()
         previous_reviewer_score = score_dict.copy()
         submitter_score = score_dict.copy()
@@ -452,31 +433,29 @@ class ScoreLog(models.Model):
         ):
             if submission.old_value == "" and submission.new_value != "":
                 submitter_score["action_code"] = TranslationActionCodes.NEW
-            else:
-                if submission.new_value == "":
-                    submitter_score["action_code"] = TranslationActionCodes.DELETED
+            elif submission.new_value == "":
+                submitter_score["action_code"] = TranslationActionCodes.DELETED
 
-                    previous_translator_score[
-                        "action_code"
-                    ] = TranslationActionCodes.EDIT_PENALTY
+                previous_translator_score[
+                    "action_code"
+                ] = TranslationActionCodes.EDIT_PENALTY
 
-                    previous_reviewer_score[
-                        "action_code"
-                    ] = TranslationActionCodes.REVIEW_PENALTY
-                else:
-                    if (
+                previous_reviewer_score[
+                    "action_code"
+                ] = TranslationActionCodes.REVIEW_PENALTY
+            elif (
                         reviewer_id is not None
                         and submission.submitter_id == reviewer_id
                     ):
-                        submitter_score[
-                            "action_code"
-                        ] = TranslationActionCodes.EDITED_OWN
-                    else:
-                        submitter_score["action_code"] = TranslationActionCodes.EDITED
+                submitter_score[
+                    "action_code"
+                ] = TranslationActionCodes.EDITED_OWN
+            else:
+                submitter_score["action_code"] = TranslationActionCodes.EDITED
 
-                        previous_reviewer_score[
-                            "action_code"
-                        ] = TranslationActionCodes.REVIEW_PENALTY
+                previous_reviewer_score[
+                    "action_code"
+                ] = TranslationActionCodes.REVIEW_PENALTY
 
         elif submission.field == SubmissionFields.STATE:
             if (
@@ -721,9 +700,7 @@ class ScoreLog(models.Model):
 
         def get_edited():
             # if similarity is below threshold treat this event as translation
-            if s == 0:
-                return translated_words, None
-            return None, reviewed_words
+            return (translated_words, None) if s == 0 else (None, reviewed_words)
 
         return {
             TranslationActionCodes.NEW: lambda: (translated_words, None),

@@ -68,7 +68,7 @@ def find_placeholders(aref, regex, cls=""):
 def wordcount(string):
     string = re.sub("\n", "{\\n}", string)
 
-    chunks = [{"translate": 1, "string": u"%s" % string}]
+    chunks = [{"translate": 1, "string": f"{string}"}]
 
     # FIXME: provide line continuations to fit lines below 80 chars
 

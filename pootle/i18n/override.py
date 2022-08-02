@@ -23,15 +23,12 @@ def find_languages(locale_path):
     directory.
     """
     dirs = os.listdir(locale_path)
-    langs = []
-    for lang in dirs:
-        if data.langcode_re.match(lang) and os.path.isdir(
-            os.path.join(locale_path, lang)
-        ):
-            langs.append(
-                (trans_real.to_language(lang), data.languages.get(lang, (lang,))[0])
-            )
-    return langs
+    return [
+        (trans_real.to_language(lang), data.languages.get(lang, (lang,))[0])
+        for lang in dirs
+        if data.langcode_re.match(lang)
+        and os.path.isdir(os.path.join(locale_path, lang))
+    ]
 
 
 def supported_langs():
@@ -56,10 +53,7 @@ def get_lang_from_cookie(request, supported):
 
     lang_code = request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME)
 
-    if lang_code and lang_code in supported:
-        return lang_code
-
-    return None
+    return lang_code if lang_code and lang_code in supported else None
 
 
 def get_lang_from_http_header(request, supported):

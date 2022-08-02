@@ -38,10 +38,7 @@ def log(message):
 
 def action_log(*args, **kwargs):
     logger = logging.getLogger("action")
-    d = {}
-    for p in ["user", "lang", "action", "unit", "path"]:
-        d[p] = kwargs.pop(p, "")
-
+    d = {p: kwargs.pop(p, "") for p in ["user", "lang", "action", "unit", "path"]}
     tr = kwargs.pop("translation", "")
     tr = tr.replace("\\", "\\\\")
     tr = tr.replace("\n", "\\\n")
@@ -78,10 +75,7 @@ def cmd_log(*args, **kwargs):
 
 def store_log(*args, **kwargs):
     logger = logging.getLogger("action")
-    d = {}
-    for p in ["user", "path", "action", "store"]:
-        d[p] = kwargs.pop(p, "")
-
+    d = {p: kwargs.pop(p, "") for p in ["user", "path", "action", "store"]}
     message = "%(user)s\t%(action)s\t%(path)s\t%(store)s" % d
 
     logger.info(message)

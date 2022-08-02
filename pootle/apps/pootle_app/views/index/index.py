@@ -37,7 +37,7 @@ def view(request):
 
     # Preserve query strings
     args = request.GET.urlencode()
-    qs = "?%s" % args if args else ""
-    redirect_url = "%s%s" % (url, qs)
+    qs = f"?{args}" if args else ""
+    redirect_url = f"{url}{qs}"
 
     return redirect(redirect_url)

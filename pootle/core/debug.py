@@ -18,9 +18,9 @@ def log_timing(start, timed=None, debug_logger=None):
     debug_logger = debug_logger or logger
     timing = time.time() - start
     if timed:
-        msg = "Timing for %s: %s seconds" % (timed, timing)
+        msg = f"Timing for {timed}: {timing} seconds"
     else:
-        msg = "Timing: %s seconds" % timing
+        msg = f"Timing: {timing} seconds"
     debug_logger.debug(msg)
 
 

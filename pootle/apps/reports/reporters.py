@@ -43,9 +43,7 @@ class JSONReporter(BaseReporter):
         return os.path.join(month_dir, "report.json")
 
     def clean_config_value(self, value):
-        if not isinstance(value, str):
-            return value
-        return re.sub(r"\n\s+", r"\n", value)
+        return re.sub(r"\n\s+", r"\n", value) if isinstance(value, str) else value
 
     def get_invoice_data(self, invoice):
         """Gets individual invoice data."""

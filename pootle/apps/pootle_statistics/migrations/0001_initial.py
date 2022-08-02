@@ -5,6 +5,8 @@ from django.db import models, migrations
 from django.conf import settings
 
 
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -27,8 +29,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("creation_time", models.DateTimeField(db_index=True)),
-                ("field", models.IntegerField(db_index=True, null=True, blank=True)),
-                ("type", models.IntegerField(db_index=True, null=True, blank=True)),
+                (
+                    "field",
+                    models.IntegerField(db_index=True, null=True, blank=True),
+                ),
+                (
+                    "type",
+                    models.IntegerField(db_index=True, null=True, blank=True),
+                ),
                 ("old_value", models.TextField(default="", blank=True)),
                 ("new_value", models.TextField(default="", blank=True)),
                 ("similarity", models.FloatField(null=True, blank=True)),
@@ -54,7 +62,9 @@ class Migration(migrations.Migration):
                 (
                     "submitter",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE
+                        to=settings.AUTH_USER_MODEL,
+                        null=True,
+                        on_delete=models.CASCADE,
                     ),
                 ),
                 (
@@ -112,7 +122,8 @@ class Migration(migrations.Migration):
                 (
                     "submission",
                     models.ForeignKey(
-                        to="pootle_statistics.Submission", on_delete=models.CASCADE
+                        to="pootle_statistics.Submission",
+                        on_delete=models.CASCADE,
                     ),
                 ),
                 (
@@ -126,6 +137,6 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.AlterUniqueTogether(
-            name="scorelog", unique_together=set([("submission", "action_code")]),
+            name="scorelog", unique_together={("submission", "action_code")}
         ),
     ]

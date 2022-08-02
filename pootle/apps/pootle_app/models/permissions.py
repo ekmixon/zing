@@ -18,10 +18,9 @@ from pootle.core.constants import CACHE_TIMEOUT
 
 
 def get_permission_contenttype():
-    content_type = ContentType.objects.filter(
+    return ContentType.objects.filter(
         app_label="pootle_app", model="directory"
     )[0]
-    return content_type
 
 
 def get_pootle_permission(codename):
@@ -34,7 +33,7 @@ def get_pootle_permission(codename):
 def get_permissions_by_username(username, directory):
     pootle_path = directory.pootle_path
     path_parts = [_f for _f in pootle_path.split("/") if _f]
-    key = iri_to_uri("Permissions:%s" % username)
+    key = iri_to_uri(f"Permissions:{username}")
     permissions_cache = cache.get(key, {})
 
     if pootle_path not in permissions_cache:
@@ -59,7 +58,7 @@ def get_permissions_by_username(username, directory):
             # Active permission at language level or higher, check project
             # level permission
             try:
-                project_path = "/projects/%s/" % path_parts[1]
+                project_path = f"/projects/{path_parts[1]}/"
                 permissionset = PermissionSet.objects.get(
                     directory__pootle_path=project_path, user__username=username
                 )
@@ -119,11 +118,7 @@ def check_permission(permission_codename, request):
         elif hasattr(request, "project"):
             path_obj = request.project
 
-        if path_obj is None:
-            return True  # Always allow to view language pages
-
-        return path_obj.is_accessible_by(request.user)
-
+        return True if path_obj is None else path_obj.is_accessible_by(request.user)
     return (
         "administrate" in request.permissions
         or permission_codename in request.permissions
@@ -152,22 +147,22 @@ class PermissionSet(models.Model):
     )
 
     def __str__(self):
-        return "%s : %s" % (self.user.username, self.directory.pootle_path)
+        return f"{self.user.username} : {self.directory.pootle_path}"
 
     def to_dict(self):
         permissions_iterator = self.positive_permissions.iterator()
-        return dict((perm.codename, perm) for perm in permissions_iterator)
+        return {perm.codename: perm for perm in permissions_iterator}
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # FIXME: can we use `post_save` signals or invalidate caches in model
         # managers, please?
-        key = iri_to_uri("Permissions:%s" % self.user.username)
+        key = iri_to_uri(f"Permissions:{self.user.username}")
         cache.delete(key)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         # FIXME: can we use `post_delete` signals or invalidate caches in model
         # managers, please?
-        key = iri_to_uri("Permissions:%s" % self.user.username)
+        key = iri_to_uri(f"Permissions:{self.user.username}")
         cache.delete(key)

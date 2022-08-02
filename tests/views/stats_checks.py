@@ -45,11 +45,11 @@ def test_stats_checks(client, request_users, test_name, request, snapshot_stack,
         users_with_stats.add(user)
 
     with snapshot_stack.push(
-        [as_dir(test_name), as_dir(user.username), url_name(path)]
-    ):
+            [as_dir(test_name), as_dir(user.username), url_name(path)]
+        ):
         if not user.is_anonymous:
             client.force_login(user)
-        url = "/xhr/stats/checks/?path=%s" % path
+        url = f"/xhr/stats/checks/?path={path}"
         response = client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
         with snapshot_stack.push("status_code") as snapshot:

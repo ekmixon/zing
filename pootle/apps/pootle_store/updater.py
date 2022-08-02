@@ -242,11 +242,12 @@ class StoreUpdater(object):
         :return: the amount of units for which the revision has been
             incremented.
         """
-        if not uid_list:
-            return 0
-
-        return self.target_store.unit_set.filter(id__in=uid_list).update(
-            revision=Revision.incr()
+        return (
+            self.target_store.unit_set.filter(id__in=uid_list).update(
+                revision=Revision.incr()
+            )
+            if uid_list
+            else 0
         )
 
     def units(self, uids):
@@ -274,10 +275,7 @@ class StoreUpdater(object):
                     store, store_revision, diff, update_revision, user, submission_type,
                 )
         finally:
-            if old_state < PARSED:
-                self.target_store.state = PARSED
-            else:
-                self.target_store.state = old_state
+            self.target_store.state = PARSED if old_state < PARSED else old_state
             has_changed = any(x > 0 for x in changes.values())
             self.target_store.save(update_cache=has_changed)
             if has_changed:
@@ -295,8 +293,6 @@ class StoreUpdater(object):
     def update_from_diff(
         self, store, store_revision, to_change, update_revision, user, submission_type
     ):
-        changes = {}
-
         # Update indexes
         for start, delta in to_change["index"]:
             self.target_store.update_index(start=start, delta=delta)
@@ -306,12 +302,12 @@ class StoreUpdater(object):
             self.target_store.addunit(
                 unit, new_unit_index, user=user, update_revision=update_revision,
             )
-        changes["added"] = len(to_change["add"])
-
-        # Obsolete units
-        changes["obsoleted"] = self.target_store.mark_units_obsolete(
-            to_change["obsolete"], update_revision,
-        )
+        changes = {
+            "added": len(to_change["add"]),
+            "obsoleted": self.target_store.mark_units_obsolete(
+                to_change["obsolete"], update_revision
+            ),
+        }
 
         # Update units
         update_dbids, uid_index_map = to_change["update"]
@@ -325,7 +321,7 @@ class StoreUpdater(object):
             update_revision=update_revision,
         )
         updated, suggested, unsynced_uids = self.update_units(update)
-        changes.update({"updated": updated, "suggested": suggested})
+        changes |= {"updated": updated, "suggested": suggested}
         return changes, unsynced_uids
 
     def update_from_disk(self, force=False, overwrite=False):
@@ -371,8 +367,7 @@ class StoreUpdater(object):
 
         if self.target_store.last_sync_revision is not None:
             unsynced_uids += list(self.get_unsynced_uids(update_revision))
-            unsynced_count = self.incr_unit_revision(unsynced_uids)
-            if unsynced_count:
+            if unsynced_count := self.incr_unit_revision(unsynced_uids):
                 logging.info(
                     u"[update] unsynced %d units in %s [revision: %d]",
                     unsynced_count,

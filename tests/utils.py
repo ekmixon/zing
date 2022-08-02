@@ -50,9 +50,11 @@ def setup_store(pootle_path):
 
 
 def create_store(units=None):
-    _units = []
-    for src, target in units or []:
-        _units.append(STRING_UNIT % {"src": src, "target": target})
+    _units = [
+        STRING_UNIT % {"src": src, "target": target}
+        for src, target in units or []
+    ]
+
     units = "\n\n".join(_units)
     string_store = STRING_STORE % {"units": units}
     io_store = io.BytesIO(string_store.encode("utf-8"))
@@ -114,7 +116,7 @@ def update_store(
 
 def as_dir(name):
     """Returns `name` as a string usable for snapshot stacks."""
-    return name if name.endswith("/") else "%s/" % name
+    return name if name.endswith("/") else f"{name}/"
 
 
 def url_name(url):

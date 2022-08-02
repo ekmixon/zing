@@ -144,7 +144,7 @@ class InitDB(object):
         }
 
         for permission in permissions:
-            criteria.update(permission)
+            criteria |= permission
             self._create_object(Permission, **criteria)
 
     def create_pootle_permission_sets(self):
@@ -179,8 +179,7 @@ class InitDB(object):
             "nplurals": 2,
             "pluralequation": "(n != 1)",
         }
-        en = self._create_object(Language, **criteria)[0]
-        return en
+        return self._create_object(Language, **criteria)[0]
 
     def create_root_directories(self):
         """Create the root Directory items."""
@@ -229,8 +228,9 @@ class InitDB(object):
             if code in existing_lang_codes:
                 continue
             directory = Directory(
-                parent=Directory.objects.root, pootle_path="/%s/" % code, name=code
+                parent=Directory.objects.root, pootle_path=f"/{code}/", name=code
             )
+
             directories.append(directory)
         if directories:
             Directory.objects.bulk_create(directories)

@@ -50,21 +50,20 @@ class PootleExportView(PootleDetailView):
         units_qs = units_qs.select_related("store")
 
         if total > UNITS_LIMIT:
-            ctx.update({"unit_total_count": total, "displayed_unit_count": UNITS_LIMIT})
+            ctx |= {"unit_total_count": total, "displayed_unit_count": UNITS_LIMIT}
 
         unit_groups = [
             (path, list(units))
             for path, units in groupby(units_qs, lambda x: x.store.pootle_path)
         ]
 
-        ctx.update(
-            {
-                "unit_groups": unit_groups,
-                "filter_name": filter_name,
-                "filter_extra": filter_extra,
-                "source_language": self.source_language,
-                "language": self.language,
-                "project": self.project,
-            }
-        )
+        ctx |= {
+            "unit_groups": unit_groups,
+            "filter_name": filter_name,
+            "filter_extra": filter_extra,
+            "source_language": self.source_language,
+            "language": self.language,
+            "project": self.project,
+        }
+
         return ctx

@@ -17,7 +17,7 @@ from django.core.management.base import CommandError
 @pytest.mark.parametrize("month", ["12-2012", "12-12", "12", "12/2012", "2012/12"])
 def test_generate_invoices_invalid_month(month):
     with pytest.raises(CommandError) as e:
-        call_command("generate_invoices", "--month=%s" % month)
+        call_command("generate_invoices", f"--month={month}")
     assert "month parameter has an invalid format" in str(e.value)
 
 

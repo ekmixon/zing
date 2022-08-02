@@ -59,7 +59,7 @@ BLACKLISTED_KEYS = [
 
 class Snapshot(object):
     def __init__(self, ctx_name, data_dir=None, generate=False, **kwargs):
-        self.filename = "%s.json" % ctx_name
+        self.filename = f"{ctx_name}.json"
         self.data_dir = data_dir or ""
         self.generate = generate
 
@@ -87,9 +87,7 @@ class Snapshot(object):
         """Cleans up `data` before using it as a snapshot reference."""
         if isinstance(data, RequestContext):
             return self.clean(data.flatten())
-        # XXX: maybe we can do something smarter than blacklisting when we
-        # have a `ContextList`?
-        elif isinstance(data, dict) or isinstance(data, ContextList):
+        elif isinstance(data, (dict, ContextList)):
             return {
                 key: self.clean(data[key])
                 for key in data.keys()

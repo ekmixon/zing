@@ -48,7 +48,7 @@ def test_export(
 
     stack = [as_dir(test_name), as_dir(user.username), url_name(url)]
     if limit is not None:
-        stack.append("limit=%s" % limit)
+        stack.append(f"limit={limit}")
         monkeypatch.setattr("pootle.core.views.export.UNITS_LIMIT", limit)
 
     if include_disabled:

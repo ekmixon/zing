@@ -24,10 +24,7 @@ class SuggestionStates(object):
 def add_trailing_slash(path):
     """If path does not end with /, add it and return."""
 
-    if len(path) > 0 and path[-1] == os.sep:
-        return path
-    else:
-        return path + os.sep
+    return path if len(path) > 0 and path[-1] == os.sep else path + os.sep
 
 
 def relative_real_path(p):
@@ -38,10 +35,11 @@ def relative_real_path(p):
 
 
 def absolute_real_path(p):
-    if not p.startswith(settings.ZING_TRANSLATION_DIRECTORY):
-        return os.path.join(settings.ZING_TRANSLATION_DIRECTORY, p)
-    else:
-        return p
+    return (
+        p
+        if p.startswith(settings.ZING_TRANSLATION_DIRECTORY)
+        else os.path.join(settings.ZING_TRANSLATION_DIRECTORY, p)
+    )
 
 
 def find_altsrcs(unit, alt_src_langs, store=None, project=None):
@@ -53,8 +51,8 @@ def find_altsrcs(unit, alt_src_langs, store=None, project=None):
     store = store or unit.store
     project = project or store.translation_project.project
 
-    language_regex = "(%s)" % "|".join([x.code for x in alt_src_langs])
-    pootle_path = "/%s/%s/%s$" % (language_regex, project.code, store.path)
+    language_regex = f'({"|".join([x.code for x in alt_src_langs])})'
+    pootle_path = f"/{language_regex}/{project.code}/{store.path}$"
 
     altsrcs_qs = Unit.objects.filter(
         unitid_hash=unit.unitid_hash,
@@ -73,9 +71,9 @@ def get_change_str(changes):
 
     If all elements are zero, `nothing changed` is returned.
     """
-    res = [u"%s %d" % (key, changes[key]) for key in changes if changes[key] > 0]
-
-    if res:
+    if res := [
+        u"%s %d" % (key, changes[key]) for key in changes if changes[key] > 0
+    ]:
         return ", ".join(res)
 
     return "no changed"

@@ -26,7 +26,7 @@ class DisplayUser(object):
 
     @property
     def display_name(self):
-        return self.full_name.strip() if self.full_name.strip() else self.username
+        return self.full_name.strip() or self.username
 
     @property
     def email_hash(self):

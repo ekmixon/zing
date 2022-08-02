@@ -16,7 +16,6 @@ def flatten(elements):
     """
     for element in elements:
         if isinstance(element, Iterable) and not isinstance(element, str):
-            for sub in flatten(element):
-                yield sub
+            yield from flatten(element)
         else:
             yield element

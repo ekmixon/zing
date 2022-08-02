@@ -53,9 +53,8 @@ def get_version(version=None):
 
     sub = ""
     if _is_development_candidate(version):
-        git_changeset = get_git_changeset()
-        if git_changeset:
-            sub = ".dev%s" % git_changeset
+        if git_changeset := get_git_changeset():
+            sub = f".dev{git_changeset}"
         else:
             sub = ".dev0"
 
@@ -136,10 +135,7 @@ def get_complete_version(version=None):
     >>> get_complete_version((1, 2, 3, 'alpha', 0))
     (1, 2, 3, 'alpha', 0)
     """
-    if version is not None:
-        return version
-
-    return VERSION
+    return version if version is not None else VERSION
 
 
 def get_docs_version(version=None, positions=2):
@@ -162,7 +158,7 @@ def get_docs_version(version=None, positions=2):
 def get_rtd_version(version=None):
     """Return the docs version string reported in the RTD site."""
     version_str = get_docs_version(version=version, positions=3)
-    return "latest" if version_str == "dev" else "stable-%s" % (version_str,)
+    return "latest" if version_str == "dev" else f"stable-{version_str}"
 
 
 def _shell_command(command):
@@ -209,9 +205,7 @@ def get_git_branch():
     'feature/proper_version'
     """
     branch = _shell_command(["/usr/bin/git", "symbolic-ref", "-q", "HEAD"]).strip()
-    if not branch:
-        return None
-    return "/".join(branch.split("/")[2:])
+    return "/".join(branch.split("/")[2:]) if branch else None
 
 
 @lru_cache()

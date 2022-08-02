@@ -18,7 +18,7 @@ def anon_submission_unit(nobody, store0):
     unit = store0.units.first()
     old_target = unit.target
     old_state = unit.state
-    unit.target_f = "Updated %s" % old_target
+    unit.target_f = f"Updated {old_target}"
     unit._target_updated = True
 
     unit.store.record_submissions(

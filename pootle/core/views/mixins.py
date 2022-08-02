@@ -53,19 +53,17 @@ class TestUserFieldMixin(object):
         user = self.request.user
         url_field_value = kwargs[self.test_user_field]
         field_value = getattr(user, self.test_user_field, "")
-        can_access = user.is_superuser or str(field_value) == url_field_value
-
-        if not can_access:
+        if can_access := user.is_superuser or field_value == url_field_value:
+            return super().dispatch(*args, **kwargs)
+        else:
             raise PermissionDenied(_("You cannot access this page."))
-
-        return super().dispatch(*args, **kwargs)
 
 
 class NoDefaultUserMixin(object):
     """Removes the `default` special user from views."""
 
     def dispatch(self, request, *args, **kwargs):
-        username = kwargs.get("username", None)
+        username = kwargs.get("username")
         if username is not None and username == "default":
             raise Http404
 

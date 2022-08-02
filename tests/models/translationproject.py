@@ -48,7 +48,7 @@ def test_tp_create_fail(po_directory, tutorial, english):
 def test_tp_create_with_files(project0_directory, project0, store0, settings):
     trans_dir = settings.ZING_TRANSLATION_DIRECTORY
     language = LanguageDBFactory()
-    tp_dir = os.path.join(trans_dir, "project0/%s" % language.code)
+    tp_dir = os.path.join(trans_dir, f"project0/{language.code}")
     os.makedirs(tp_dir)
 
     with open(os.path.join(tp_dir, "store0.po"), "wb") as f:

@@ -46,6 +46,6 @@ def test_pootle_init(capfd):
 def test_pootle_init_db_sqlite(capfd, tmpdir):
     """pootle init --help"""
     test_conf_file = tmpdir.join("pootle.conf")
-    call(["pootle", "init", "--db=sqlite", "--config=%s" % test_conf_file])
+    call(["pootle", "init", "--db=sqlite", f"--config={test_conf_file}"])
     out, err = capfd.readouterr()
     assert "Configuration file created" in out

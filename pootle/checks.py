@@ -42,13 +42,15 @@ def check_redis(app_configs=None, **kwargs):
         conn_settings = queue.connection.connection_pool.connection_kwargs
         errors.append(
             checks.Critical(
-                _("Could not connect to Redis (%s)" % e),
+                _(f"Could not connect to Redis ({e})"),
                 hint=_(
-                    "Make sure Redis is running on %(host)s:%(port)s" % conn_settings
+                    "Make sure Redis is running on %(host)s:%(port)s"
+                    % conn_settings
                 ),
                 id="pootle.C001",
             )
         )
+
     else:
         if len(queue.connection.smembers(Worker.redis_workers_keys)) == 0:
             # We need to check we're not running manage.py rqworker right now..
@@ -97,10 +99,11 @@ def check_settings(app_configs=None, **kwargs):
             )
 
     redis_cache_aliases = ("default", "redis", "stats")
-    redis_locations = set()
-    for alias in redis_cache_aliases:
-        if alias in settings.CACHES:
-            redis_locations.add(settings.CACHES.get(alias, {}).get("LOCATION"))
+    redis_locations = {
+        settings.CACHES.get(alias, {}).get("LOCATION")
+        for alias in redis_cache_aliases
+        if alias in settings.CACHES
+    }
 
     if len(redis_locations) < len(redis_cache_aliases):
         errors.append(
@@ -227,11 +230,14 @@ def check_settings(app_configs=None, **kwargs):
         if coefficient_name not in settings.ZING_SCORE_COEFFICIENTS:
             errors.append(
                 checks.Critical(
-                    _("ZING_SCORE_COEFFICIENTS has no %s." % coefficient_name),
-                    hint=_("Set %s in ZING_SCORE_COEFFICIENTS." % coefficient_name),
+                    _(f"ZING_SCORE_COEFFICIENTS has no {coefficient_name}."),
+                    hint=_(
+                        f"Set {coefficient_name} in ZING_SCORE_COEFFICIENTS."
+                    ),
                     id="pootle.C014",
                 )
             )
+
         else:
             coef = settings.ZING_SCORE_COEFFICIENTS[coefficient_name]
             if not isinstance(coef, float):

@@ -28,7 +28,7 @@ CORE_APPS_WITH_COMMANDS = (
 )
 def test_initdb_help(capfd, command, app):
     """Catch any simple command issues"""
-    print("Command: %s, App: %s" % (command, app))
+    print(f"Command: {command}, App: {app}")
     with pytest.raises(SystemExit):
         call_command(command, "--help")
     out, err = capfd.readouterr()

@@ -165,27 +165,25 @@ class SubmissionProxy(object):
                 get_editor_filter(),
             ]
         )
-        return "%s%s" % (store_url, "#unit=%s" % str(self.unit))
+        return f"{store_url}#unit={str(self.unit)}"
 
     @property
     def unit_info(self):
         info = {}
         if self.unit is None:
             return info
-        info.update(
-            dict(
-                source=truncatechars(self.unit_source, 50),
-                unit_url=self.unit_translate_url,
-            )
+        info |= dict(
+            source=truncatechars(self.unit_source, 50),
+            unit_url=self.unit_translate_url,
         )
+
         if self.qc_name is None:
             return info
-        info.update(
-            dict(
-                check_name=self.qc_name,
-                check_displayname=check_names.get(self.qc_name, self.qc_name),
-            )
+        info |= dict(
+            check_name=self.qc_name,
+            check_displayname=check_names.get(self.qc_name, self.qc_name),
         )
+
         return info
 
     @property

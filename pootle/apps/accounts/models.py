@@ -130,13 +130,13 @@ class User(AbstractBaseUser):
     @property
     def display_name(self):
         """Human-readable display name."""
-        return self.get_full_name() if self.get_full_name() else self.get_short_name()
+        return self.get_full_name() or self.get_short_name()
 
     @property
     def formatted_name(self):
         """Full name (username)"""
         if self.get_full_name():
-            return "%s (%s)" % (self.get_full_name(), self.get_short_name())
+            return f"{self.get_full_name()} ({self.get_short_name()})"
 
         return self.get_short_name()
 
@@ -196,14 +196,10 @@ class User(AbstractBaseUser):
         }
 
         if language is not None:
-            lookup_kwargs.update(
-                {"submission__translation_project__language__code": language}
-            )
+            lookup_kwargs["submission__translation_project__language__code"] = language
 
         if project is not None:
-            lookup_kwargs.update(
-                {"submission__translation_project__project__code": project}
-            )
+            lookup_kwargs["submission__translation_project__project__code"] = project
 
         meta_user_ids = cls.objects.meta_users().values_list("id", flat=True)
         top_scores = (
@@ -254,10 +250,13 @@ class User(AbstractBaseUser):
         if isinstance(limit, int) and limit > 0:
             top_scores = top_scores[:limit]
 
-        users = dict(
-            (user.id, user)
-            for user in cls.objects.filter(pk__in=[item["user"] for item in top_scores])
-        )
+        users = {
+            user.id: user
+            for user in cls.objects.filter(
+                pk__in=[item["user"] for item in top_scores]
+            )
+        }
+
 
         top_scorers = []
         for item in top_scores:
@@ -286,9 +285,7 @@ class User(AbstractBaseUser):
         if self.is_meta:
             raise ProtectedError("Cannot remove meta user instances", None)
 
-        purge = kwargs.pop("purge", False)
-
-        if purge:
+        if purge := kwargs.pop("purge", False):
             UserPurger(self).purge()
         else:
             UserMerger(self, User.objects.get_nobody_user()).merge()
@@ -377,12 +374,14 @@ class User(AbstractBaseUser):
             sync_user_email_addresses(self)
 
     def gravatar_url(self, size=80):
-        if not self.email_hash:
-            return ""
-
-        return "https://secure.gravatar.com/avatar/%s?s=%d&d=mm" % (
-            self.email_hash,
-            size,
+        return (
+            "https://secure.gravatar.com/avatar/%s?s=%d&d=mm"
+            % (
+                self.email_hash,
+                size,
+            )
+            if self.email_hash
+            else ""
         )
 
     def get_suggestion_reviews(self):

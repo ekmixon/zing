@@ -13,6 +13,4 @@ from django.db.models import Max
 
 def max_column(queryset, column, default):
     result = queryset.aggregate(result=Max(column))["result"]
-    if result is None:
-        return default
-    return result
+    return default if result is None else result

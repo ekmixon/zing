@@ -6,6 +6,8 @@ import django.utils.timezone
 from django.conf import settings
 
 
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -43,7 +45,10 @@ class Migration(migrations.Migration):
                         verbose_name="Virtual Path",
                     ),
                 ),
-                ("title", models.CharField(max_length=100, verbose_name="Title")),
+                (
+                    "title",
+                    models.CharField(max_length=100, verbose_name="Title"),
+                ),
                 (
                     "body",
                     models.TextField(
@@ -67,7 +72,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -100,7 +107,10 @@ class Migration(migrations.Migration):
                         verbose_name="Virtual Path",
                     ),
                 ),
-                ("title", models.CharField(max_length=100, verbose_name="Title")),
+                (
+                    "title",
+                    models.CharField(max_length=100, verbose_name="Title"),
+                ),
                 (
                     "body",
                     models.TextField(
@@ -124,7 +134,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -162,6 +174,6 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.AlterUniqueTogether(
-            name="agreement", unique_together=set([("user", "document")]),
+            name="agreement", unique_together={("user", "document")}
         ),
     ]

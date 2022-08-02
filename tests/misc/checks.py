@@ -588,13 +588,12 @@ def test_get_qualitycheck_schema():
                 "checks": [],
             }
         d[cat]["checks"].append(
-            {"code": check, "title": u"%s" % check_names.get(check, check)}
+            {"code": check, "title": f"{check_names.get(check, check)}"}
         )
+
         d[cat]["checks"] = sorted(d[cat]["checks"], key=lambda x: x["code"])
 
-    result = sorted(
-        [item for item in d.values()], key=lambda x: x["code"], reverse=True
-    )
+    result = sorted(list(d.values()), key=lambda x: x["code"], reverse=True)
 
     assert result == get_qualitycheck_schema()
 

@@ -328,7 +328,7 @@ def update_user_rates(request):
             User = get_user_model()
             user = User.objects.get(username=form.cleaned_data["username"])
         except User.DoesNotExist:
-            error_text = _("User %s not found" % form.cleaned_data["username"])
+            error_text = _(f'User {form.cleaned_data["username"]} not found')
             return JsonResponseNotFound({"msg": error_text})
 
         user.currency = form.cleaned_data["currency"]
@@ -340,8 +340,8 @@ def update_user_rates(request):
         paid_task_filter = scorelog_filter.copy()
         if form.cleaned_data["effective_from"] is not None:
             effective_from = form.cleaned_data["effective_from"]
-            scorelog_filter.update({"creation_time__gte": effective_from})
-            paid_task_filter.update({"datetime__gte": effective_from})
+            scorelog_filter["creation_time__gte"] = effective_from
+            paid_task_filter["datetime__gte"] = effective_from
 
         scorelog_query = ScoreLog.objects.filter(**scorelog_filter)
         scorelog_count = scorelog_query.count()
@@ -405,13 +405,12 @@ def remove_paid_task(request, task_id=None):
 def get_activity_data(request, user, month):
     [start, end] = get_date_interval(month)
 
-    json = {}
     user_dict = (
         {
             "id": user.id,
             "username": user.username,
             "formatted_name": user.formatted_name,
-            "currency": user.currency if user.currency else CURRENCIES[0][0],
+            "currency": user.currency or CURRENCIES[0][0],
             "rate": user.rate,
             "review_rate": user.review_rate,
             "hourly_rate": user.hourly_rate,
@@ -420,16 +419,21 @@ def get_activity_data(request, user, month):
         else user
     )
 
+
     now = make_aware(datetime.now())
 
-    json["meta"] = {
-        "user": user_dict,
-        "month": month,
-        "now": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "start": start.strftime("%Y-%m-%d"),
-        "end": end.strftime("%Y-%m-%d"),
-        "utc_offset": start.strftime("%z"),
-        "admin_permalink": request.build_absolute_uri(reverse("pootle-reports")),
+    json = {
+        "meta": {
+            "user": user_dict,
+            "month": month,
+            "now": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "start": start.strftime("%Y-%m-%d"),
+            "end": end.strftime("%Y-%m-%d"),
+            "utc_offset": start.strftime("%z"),
+            "admin_permalink": request.build_absolute_uri(
+                reverse("pootle-reports")
+            ),
+        }
     }
 
     if user != "":
@@ -549,24 +553,20 @@ def get_daily_activity(user, scores, start, end):
 
 
 def get_paid_tasks(user, start, end):
-    result = []
-
     tasks = PaidTask.objects.for_user_in_range(user, start, end)
 
-    for task in tasks:
-        result.append(
-            {
-                "id": task.id,
-                "description": task.description,
-                "amount": task.amount,
-                "type": task.task_type,
-                "action": PaidTask.get_task_type_title(task.task_type),
-                "rate": task.rate,
-                "datetime": task.datetime,
-            }
-        )
-
-    return result
+    return [
+        {
+            "id": task.id,
+            "description": task.description,
+            "amount": task.amount,
+            "type": task.task_type,
+            "action": PaidTask.get_task_type_title(task.task_type),
+            "rate": task.rate,
+            "datetime": task.datetime,
+        }
+        for task in tasks
+    ]
 
 
 def get_summary(scores, start, end):
@@ -619,11 +619,7 @@ def get_summary(scores, start, end):
 
     for group in [translations, reviews]:
         for i, item in enumerate(group):
-            if i == 0:
-                item["start"] = start
-            else:
-                item["start"] = get_min_month_datetime(item["start"])
-
+            item["start"] = start if i == 0 else get_min_month_datetime(item["start"])
             if item["end"].month == end.month and item["end"].year == end.year:
                 item["end"] = end
             else:

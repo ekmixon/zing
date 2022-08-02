@@ -55,11 +55,12 @@ def jsonify(obj, indent=None):
 
 def remove_empty_from_dict(input):
     """Removes empty (falsy) values from dictionaries recursively."""
-    if not isinstance(input, dict):
-        return input
-
-    return {
-        key: remove_empty_from_dict(value)
-        for key, value in iter(input.items())
-        if value and remove_empty_from_dict(value)
-    }
+    return (
+        {
+            key: remove_empty_from_dict(value)
+            for key, value in iter(input.items())
+            if value and remove_empty_from_dict(value)
+        }
+        if isinstance(input, dict)
+        else input
+    )

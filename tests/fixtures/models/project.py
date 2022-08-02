@@ -22,10 +22,9 @@ def _require_project(code, name, source_language, **kwargs):
         "fullname": name,
         "source_language": source_language,
         "checkstyle": "standard",
-    }
-    criteria.update(kwargs)
-    new_project = Project.objects.get_or_create(**criteria)[0]
-    return new_project
+    } | kwargs
+
+    return Project.objects.get_or_create(**criteria)[0]
 
 
 @pytest.fixture
@@ -98,9 +97,7 @@ def project_dir_resources0(project0, subdir0):
     resources = Directory.objects.live().filter(
         name=subdir0.name, parent__translationproject__project=project0
     )
-    return ProjectResource(
-        resources, ("/projects/%s/%s" % (project0.code, subdir0.name))
-    )
+    return ProjectResource(resources, f"/projects/{project0.code}/{subdir0.name}")
 
 
 @pytest.fixture
@@ -118,7 +115,7 @@ def project_store_resources0(project0, subdir0):
     )
 
     return ProjectResource(
-        resources, ("/projects/%s/%s/%s" % (project0.code, subdir0.name, store.name))
+        resources, f"/projects/{project0.code}/{subdir0.name}/{store.name}"
     )
 
 

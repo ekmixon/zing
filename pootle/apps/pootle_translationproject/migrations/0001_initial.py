@@ -5,6 +5,8 @@ from django.db import models, migrations
 import pootle.core.mixins.treeitem
 
 
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -30,12 +32,17 @@ class Migration(migrations.Migration):
                 (
                     "pootle_path",
                     models.CharField(
-                        unique=True, max_length=255, editable=False, db_index=True
+                        unique=True,
+                        max_length=255,
+                        editable=False,
+                        db_index=True,
                     ),
                 ),
                 (
                     "creation_time",
-                    models.DateTimeField(db_index=True, auto_now_add=True, null=True),
+                    models.DateTimeField(
+                        db_index=True, auto_now_add=True, null=True
+                    ),
                 ),
                 ("disabled", models.BooleanField(default=False)),
                 (
@@ -59,10 +66,13 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"db_table": "pootle_app_translationproject",},
+            options={
+                "db_table": "pootle_app_translationproject",
+            },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem),
         ),
         migrations.AlterUniqueTogether(
-            name="translationproject", unique_together=set([("language", "project")]),
+            name="translationproject",
+            unique_together={("language", "project")},
         ),
     ]

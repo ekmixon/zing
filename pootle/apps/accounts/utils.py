@@ -351,14 +351,13 @@ def verify_user(user):
     existing_primary = EmailAddress.objects.filter(user=user, primary=True)
     if existing_primary.exists():
         existing_primary = existing_primary.first()
-        if not existing_primary.verified:
-            existing_primary.verified = True
-            existing_primary.save()
-            return
-        else:
+        if existing_primary.verified:
             # already verified
             raise ValueError("User '%s' is already verified" % user.username)
 
+        existing_primary.verified = True
+        existing_primary.save()
+        return
     sync_user_email_addresses(user)
     email_address = (
         EmailAddress.objects.filter(user=user, email__iexact=user.email).order_by(

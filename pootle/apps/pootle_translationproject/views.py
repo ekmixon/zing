@@ -163,9 +163,9 @@ class TPDirectoryMixin(TPMixin):
     def object_related(self):
         tp_prefix = "parent__" * self.kwargs.get("dir_path", "").count("/")
         return [
-            "%stranslationproject" % tp_prefix,
-            "%stranslationproject__language" % tp_prefix,
-            "%stranslationproject__project" % tp_prefix,
+            f"{tp_prefix}translationproject",
+            f"{tp_prefix}translationproject__language",
+            f"{tp_prefix}translationproject__project",
         ]
 
     @lru_cache()
@@ -262,7 +262,7 @@ class TPTranslateBaseView(PootleTranslateView):
 
     @property
     def pootle_path(self):
-        return "%s%s" % (self.ctx_path, self.resource_path)
+        return f"{self.ctx_path}{self.resource_path}"
 
 
 class TPTranslateView(TPDirectoryMixin, TPTranslateBaseView):

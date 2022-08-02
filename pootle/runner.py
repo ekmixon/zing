@@ -190,9 +190,9 @@ def set_sync_mode(noinput=False):
             "synchronous commands.\n\n"
         )
         if noinput:
-            print("Warning: %s" % redis_warning)
+            print(f"Warning: {redis_warning}")
         else:
-            resp = input("%sDo you wish to proceed? [Ny] " % redis_warning)
+            resp = input(f"{redis_warning}Do you wish to proceed? [Ny] ")
             if resp not in ("y", "yes"):
                 print("RQ workers running, not proceeding.")
                 exit(2)
@@ -213,7 +213,7 @@ def configure_app(project, config_path, django_settings_module, runner_name):
         will be set to.
     :param runner_name: The name of the running script.
     """
-    settings_envvar = project.upper() + "_SETTINGS"
+    settings_envvar = f"{project.upper()}_SETTINGS"
 
     # Normalize path and expand ~ constructions
     config_path = os.path.normpath(os.path.abspath(os.path.expanduser(config_path),))
@@ -318,7 +318,7 @@ def run_app(project, default_settings_path, settings_template, django_settings_m
 def get_version():
     from pootle import __version__
 
-    return "Zing %s" % (__version__)
+    return f"Zing {__version__}"
 
 
 def main():

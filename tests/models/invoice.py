@@ -53,9 +53,9 @@ def invoice_directory(settings, tmpdir):
 def test_invoice_repr(month):
     user = UserFactory.build()
     format_month = get_previous_month() if month is None else month
-    assert repr(Invoice(user, FAKE_CONFIG, month=month)) == u"<Invoice %s:%s>" % (
-        user.username,
-        format_month.strftime(MONTH_FORMAT),
+    assert (
+        repr(Invoice(user, FAKE_CONFIG, month=month))
+        == f"<Invoice {user.username}:{format_month.strftime(MONTH_FORMAT)}>"
     )
 
 
@@ -133,7 +133,7 @@ def test_invoice_get_rates_inconsistent_scorelog_rates(member, store0):
     with pytest.raises(ValueError) as e:
         invoice.get_rates()
 
-    assert "Multiple rate values recorded for user %s" % (member.username,) in str(
+    assert f"Multiple rate values recorded for user {member.username}" in str(
         e.value
     )
 
@@ -191,10 +191,10 @@ def test_invoice_get_rates_inconsistent_paidtask_rates(
     with pytest.raises(ValueError) as e:
         invoice.get_rates()
 
-    assert "Multiple %s rate values for user %s" % (
-        task_type_name,
-        member.username,
-    ) in str(e.value)
+    assert (
+        f"Multiple {task_type_name} rate values for user {member.username}"
+        in str(e.value)
+    )
 
 
 @pytest.mark.django_db
@@ -218,8 +218,9 @@ def test_invoice_get_rates_inconsistent_hourly_paidtask_rates(member):
     with pytest.raises(ValueError) as e:
         invoice.get_rates()
 
-    assert "Multiple HOURLY_WORK rate values for user %s" % (member.username) in str(
-        e.value
+    assert (
+        f"Multiple HOURLY_WORK rate values for user {member.username}"
+        in str(e.value)
     )
 
 
@@ -368,7 +369,7 @@ def test_invoice_get_user_amounts(member, action_code, task_type):
         }
         ScoreLogFactory(**scorelog_kwargs)
 
-    for i in range(TASK_COUNT):
+    for _ in range(TASK_COUNT):
         paid_task_kwargs = {
             "amount": PAID_TASK_AMOUNT,
             "datetime": month,

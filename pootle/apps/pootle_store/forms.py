@@ -67,14 +67,14 @@ class MultiStringWidget(forms.MultiWidget):
     """Custom Widget for editing multistrings."""
 
     def __init__(self, attrs=None, nplurals=1):
-        widgets = [forms.Textarea(attrs=attrs) for i_ in range(nplurals)]
+        widgets = [forms.Textarea(attrs=attrs) for _ in range(nplurals)]
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
         if value is None:
             return [None] * len(self.widgets)
         elif isinstance(value, multistring):
-            return [string for string in value.strings]
+            return list(value.strings)
         elif isinstance(value, list):
             return value
         elif isinstance(value, str):
@@ -86,7 +86,7 @@ class MultiStringWidget(forms.MultiWidget):
 class MultiStringFormField(forms.MultiValueField):
     def __init__(self, nplurals=1, attrs=None, *args, **kwargs):
         self.widget = MultiStringWidget(nplurals=nplurals, attrs=attrs)
-        fields = [forms.CharField(strip=False) for i_ in range(nplurals)]
+        fields = [forms.CharField(strip=False) for _ in range(nplurals)]
         super().__init__(fields=fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -118,11 +118,7 @@ class UnitStateField(forms.BooleanField):
 
 def unit_form_factory(language, snplurals=None, request=None):
 
-    if snplurals is not None:
-        tnplurals = language.nplurals
-    else:
-        tnplurals = 1
-
+    tnplurals = language.nplurals if snplurals is not None else 1
     action_disabled = False
     if request is not None:
         cantranslate = check_permission("translate", request)
@@ -149,7 +145,10 @@ def unit_form_factory(language, snplurals=None, request=None):
         target_attrs["disabled"] = "disabled"
         fuzzy_attrs["disabled"] = "disabled"
 
+
+
     class UnitForm(forms.ModelForm):
+
         class Meta(object):
             model = Unit
             fields = (
@@ -253,10 +252,7 @@ def unit_form_factory(language, snplurals=None, request=None):
                 else:
                     self.instance._save_action = TRANSLATION_CHANGED
 
-                if is_fuzzy:
-                    new_state = FUZZY
-                else:
-                    new_state = TRANSLATED
+                new_state = FUZZY if is_fuzzy else TRANSLATED
             else:
                 new_state = UNTRANSLATED
                 if old_state > FUZZY:
@@ -282,6 +278,7 @@ def unit_form_factory(language, snplurals=None, request=None):
                 self.cleaned_data["state"] = old_state
 
             return super().clean()
+
 
     return UnitForm
 
@@ -450,17 +447,18 @@ class UnitSearchForm(forms.Form):
             return self.cleaned_data["path"]
         if self.request_user.is_superuser:
             return self.cleaned_data["path"]
-        can_view_path = check_user_permission(
+        if can_view_path := check_user_permission(
             self.request_user, "administrate", permission_context
-        )
-        if can_view_path:
+        ):
             return self.cleaned_data["path"]
         raise forms.ValidationError("Unrecognized path")
 
     def clean_include_disabled(self):
-        if not self.request_user.is_superuser:
-            return False
-        return self.cleaned_data["include_disabled"]
+        return (
+            self.cleaned_data["include_disabled"]
+            if self.request_user.is_superuser
+            else False
+        )
 
 
 class UnitViewRowsForm(forms.Form):
@@ -483,9 +481,11 @@ class UnitViewRowsForm(forms.Form):
         return self.cleaned_data.get("user", self.request_user)
 
     def clean_include_disabled(self):
-        if not self.request_user.is_superuser:
-            return False
-        return self.cleaned_data["include_disabled"]
+        return (
+            self.cleaned_data["include_disabled"]
+            if self.request_user.is_superuser
+            else False
+        )
 
 
 class UnitExportForm(UnitSearchForm):

@@ -39,7 +39,7 @@ def make_method_key(model, method, key):
 
 def make_key(*args, **kwargs):
     """Creates a cache key with key-value pairs from a dict."""
-    return ":".join(["%s=%s" % (k, v) for k, v in sorted(iter(kwargs.items()))])
+    return ":".join([f"{k}={v}" for k, v in sorted(iter(kwargs.items()))])
 
 
 def get_cache(cache=None):

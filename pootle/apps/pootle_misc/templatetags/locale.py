@@ -19,7 +19,7 @@ register = template.Library()
 @register.simple_tag
 def locale_dir():
     """Returns current locale's direction."""
-    return trans_real.get_language_bidi() and "rtl" or "ltr"
+    return "rtl" if trans_real.get_language_bidi() else "ltr"
 
 
 @register.filter(name="dateformat")
@@ -43,4 +43,4 @@ def do_dateformat(value, use_format="c"):
 @register.simple_tag
 def locale_align():
     """Returns current locale's default alignment."""
-    return trans_real.get_language_bidi() and "right" or "left"
+    return "right" if trans_real.get_language_bidi() else "left"

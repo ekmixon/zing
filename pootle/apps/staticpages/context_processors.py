@@ -25,13 +25,13 @@ def agreement(request):
     request_path = request.META["PATH_INFO"]
     nocheck = [x for x in NOCHECK_PREFIXES if request_path.startswith(x)]
 
-    display_agreement = False
-    if (
-        request.user.is_authenticated
-        and not nocheck
-        and LegalPage.objects.has_pending_agreement(request.user)
-    ):
-        display_agreement = True
+    display_agreement = bool(
+        (
+            request.user.is_authenticated
+            and not nocheck
+            and LegalPage.objects.has_pending_agreement(request.user)
+        )
+    )
 
     return {
         "display_agreement": display_agreement,

@@ -20,14 +20,14 @@ def test_urljoin():
     """Tests URL parts are properly joined with a base."""
     base = "https://www.evernote.com/"
     assert urljoin(base) == base
-    assert urljoin(base, "/foo/bar", "baz/blah") == base + "foo/bar/baz/blah"
-    assert urljoin(base, "/foo/", "/bar/", "/baz/") == base + "foo/bar/baz/"
-    assert urljoin(base, "/foo//", "//bar/") == base + "foo/bar/"
-    assert urljoin(base, "/foo//", "//bar/?q=a") == base + "foo/bar/?q=a"
-    assert urljoin(base, "foo//", "//bar/?q=a") == base + "foo/bar/?q=a"
-    assert urljoin(base, "foo//////") == base + "foo/"
-    assert urljoin(base, "foo", "bar/baz", "blah") == base + "foo/bar/baz/blah"
-    assert urljoin(base, "foo/", "bar", "baz/") == base + "foo/bar/baz/"
+    assert urljoin(base, "/foo/bar", "baz/blah") == f"{base}foo/bar/baz/blah"
+    assert urljoin(base, "/foo/", "/bar/", "/baz/") == f"{base}foo/bar/baz/"
+    assert urljoin(base, "/foo//", "//bar/") == f"{base}foo/bar/"
+    assert urljoin(base, "/foo//", "//bar/?q=a") == f"{base}foo/bar/?q=a"
+    assert urljoin(base, "foo//", "//bar/?q=a") == f"{base}foo/bar/?q=a"
+    assert urljoin(base, "foo//////") == f"{base}foo/"
+    assert urljoin(base, "foo", "bar/baz", "blah") == f"{base}foo/bar/baz/blah"
+    assert urljoin(base, "foo/", "bar", "baz/") == f"{base}foo/bar/baz/"
     assert urljoin("", "", "/////foo") == "/foo"
 
 

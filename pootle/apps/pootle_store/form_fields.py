@@ -25,9 +25,7 @@ class CommaSeparatedCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
 
 class MultipleValueWidget(forms.TextInput):
     def value_from_datadict(self, data, files, name):
-        if hasattr(data, "getlist"):
-            return data.getlist(name)
-        return []
+        return data.getlist(name) if hasattr(data, "getlist") else []
 
 
 class MultipleArgsField(forms.Field):

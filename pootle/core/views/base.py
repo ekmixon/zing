@@ -131,14 +131,13 @@ class BasePathDispatcherView(View):
         path = form.cleaned_data["path"]
         lang_code, proj_code, dir_path, filename = split_pootle_path(path)
 
-        kwargs.update(
-            {
-                "language_code": lang_code,
-                "project_code": proj_code,
-                "dir_path": dir_path,
-                "filename": filename,
-            }
-        )
+        kwargs |= {
+            "language_code": lang_code,
+            "project_code": proj_code,
+            "dir_path": dir_path,
+            "filename": filename,
+        }
+
         kwargs.update(**form.cleaned_data)
 
         view_class = self.get_view_class(lang_code, proj_code, dir_path, filename)
@@ -150,20 +149,11 @@ class BasePathDispatcherView(View):
         return self.form_class(request_params, user=request.user)
 
     def get_view_class(self, lang_code, proj_code, dir_path, filename):
-        if lang_code and proj_code:
-            # /<lang>/<proj>/[<dir>/]<filename>.ext
-            if filename:
-                return self.store_view_class
-            # /<lang>/<proj>/[<dir>/]
-            return self.directory_view_class
-
-        # /<lang>/
         if lang_code:
+            if proj_code:
+                        # /<lang>/<proj>/[<dir>/]<filename>.ext
+                return self.store_view_class if filename else self.directory_view_class
             return self.language_view_class
 
         # /projects/<proj>/
-        if proj_code:
-            return self.project_view_class
-
-        # /projects/[<proj>/[<dir>/]<filename>.ext]
-        return self.projects_view_class
+        return self.project_view_class if proj_code else self.projects_view_class

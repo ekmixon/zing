@@ -64,9 +64,10 @@ class UnitResult(UnitProxy):
     def translate_url(self):
         return u"%s%s" % (
             reverse(
-                "pootle-tp-store-translate", args=split_pootle_path(self.pootle_path)
+                "pootle-tp-store-translate",
+                args=split_pootle_path(self.pootle_path),
             ),
-            "#unit=%s" % str(self.id),
+            f"#unit={str(self.id)}",
         )
 
     @property
@@ -109,13 +110,12 @@ class ViewRowResults(object):
         }
 
         if unit.id in self.header_uids:
-            shape.update(
-                {
-                    "language": unit.language_name,
-                    "project": unit.project_name,
-                    "file": unit.filename,
-                }
-            )
+            shape |= {
+                "language": unit.language_name,
+                "project": unit.project_name,
+                "file": unit.filename,
+            }
+
 
         # We don't need to send default values, so setting members
         # conditionally

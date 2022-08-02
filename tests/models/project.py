@@ -96,7 +96,7 @@ def test_create_project_reserved_code(english, reserved_code):
     with pytest.raises(ValidationError):
         Project(code=reserved_code, fullname="whatever", source_language=english).save()
 
-    reserved_code_with_padding = "  %s  " % reserved_code
+    reserved_code_with_padding = f"  {reserved_code}  "
     with pytest.raises(ValidationError):
         Project(
             code=reserved_code_with_padding,

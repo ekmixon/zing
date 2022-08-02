@@ -33,19 +33,21 @@ def label_tag(field, suffix=None):
     Optionally allows overriding the default `label_suffix` for the form
     this field belongs to.
     """
-    if not hasattr(field, "label_tag"):
-        return ""
-
-    return field.label_tag(label_suffix=suffix)
+    return (
+        field.label_tag(label_suffix=suffix)
+        if hasattr(field, "label_tag")
+        else ""
+    )
 
 
 @register.inclusion_tag("core/_top_scorers.html")
 def top_scorers(*args, **kwargs):
     User = get_user_model()
     allowed_kwargs = ("days", "language", "project", "limit")
-    lookup_kwargs = dict(
-        (k, v) for (k, v) in iter(kwargs.items()) if k in allowed_kwargs and v
-    )
+    lookup_kwargs = {
+        k: v for (k, v) in iter(kwargs.items()) if k in allowed_kwargs and v
+    }
+
 
     return {
         "top_scorers": User.top_scorers(**lookup_kwargs),

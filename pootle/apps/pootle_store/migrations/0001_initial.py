@@ -67,7 +67,10 @@ class Migration(migrations.Migration):
                 (
                     "pootle_path",
                     models.CharField(
-                        db_index=True, max_length=255, unique=True, verbose_name="Path"
+                        db_index=True,
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Path",
                     ),
                 ),
                 (
@@ -86,11 +89,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "state",
-                    models.IntegerField(db_index=True, default=0, editable=False),
+                    models.IntegerField(
+                        db_index=True, default=0, editable=False
+                    ),
                 ),
                 (
                     "creation_time",
-                    models.DateTimeField(auto_now_add=True, db_index=True, null=True),
+                    models.DateTimeField(
+                        auto_now_add=True, db_index=True, null=True
+                    ),
                 ),
                 (
                     "last_sync_revision",
@@ -108,7 +115,9 @@ class Migration(migrations.Migration):
                 ),
                 # ('translation_project', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='stores', to='pootle_translationproject.TranslationProject')),
             ],
-            options={"ordering": ["pootle_path"],},
+            options={
+                "ordering": ["pootle_path"],
+            },
             bases=(
                 models.Model,
                 pootle.core.mixins.treeitem.CachedTreeItem,
@@ -131,12 +140,16 @@ class Migration(migrations.Migration):
                 ("unitid", models.TextField(editable=False)),
                 (
                     "unitid_hash",
-                    models.CharField(db_index=True, editable=False, max_length=32),
+                    models.CharField(
+                        db_index=True, editable=False, max_length=32
+                    ),
                 ),
                 ("source_f", pootle_store.fields.MultiStringField(null=True)),
                 (
                     "source_hash",
-                    models.CharField(db_index=True, editable=False, max_length=32),
+                    models.CharField(
+                        db_index=True, editable=False, max_length=32
+                    ),
                 ),
                 (
                     "source_wordcount",
@@ -144,11 +157,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "source_length",
-                    models.SmallIntegerField(db_index=True, default=0, editable=False),
+                    models.SmallIntegerField(
+                        db_index=True, default=0, editable=False
+                    ),
                 ),
                 (
                     "target_f",
-                    pootle_store.fields.MultiStringField(blank=True, null=True),
+                    pootle_store.fields.MultiStringField(
+                        blank=True, null=True
+                    ),
                 ),
                 (
                     "target_wordcount",
@@ -156,22 +173,41 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "target_length",
-                    models.SmallIntegerField(db_index=True, default=0, editable=False),
+                    models.SmallIntegerField(
+                        db_index=True, default=0, editable=False
+                    ),
                 ),
                 ("developer_comment", models.TextField(blank=True, null=True)),
-                ("translator_comment", models.TextField(blank=True, null=True)),
+                (
+                    "translator_comment",
+                    models.TextField(blank=True, null=True),
+                ),
                 ("locations", models.TextField(editable=False, null=True)),
                 ("context", models.TextField(editable=False, null=True)),
                 ("state", models.IntegerField(db_index=True, default=0)),
-                ("revision", models.IntegerField(blank=True, db_index=True, default=0)),
+                (
+                    "revision",
+                    models.IntegerField(blank=True, db_index=True, default=0),
+                ),
                 (
                     "creation_time",
-                    models.DateTimeField(auto_now_add=True, db_index=True, null=True),
+                    models.DateTimeField(
+                        auto_now_add=True, db_index=True, null=True
+                    ),
                 ),
                 ("mtime", models.DateTimeField(auto_now=True, db_index=True)),
-                ("submitted_on", models.DateTimeField(db_index=True, null=True)),
-                ("commented_on", models.DateTimeField(db_index=True, null=True)),
-                ("reviewed_on", models.DateTimeField(db_index=True, null=True)),
+                (
+                    "submitted_on",
+                    models.DateTimeField(db_index=True, null=True),
+                ),
+                (
+                    "commented_on",
+                    models.DateTimeField(db_index=True, null=True),
+                ),
+                (
+                    "reviewed_on",
+                    models.DateTimeField(db_index=True, null=True),
+                ),
                 (
                     "commented_by",
                     models.ForeignKey(
@@ -207,7 +243,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ["store", "index"],},
+            options={
+                "ordering": ["store", "index"],
+            },
             bases=(models.Model, translate.storage.base.TranslationUnit),
         ),
         migrations.CreateModel(
@@ -223,8 +261,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("target_f", pootle_store.fields.MultiStringField()),
-                ("target_hash", models.CharField(db_index=True, max_length=32)),
-                ("translator_comment_f", models.TextField(blank=True, null=True)),
+                (
+                    "target_hash",
+                    models.CharField(db_index=True, max_length=32),
+                ),
+                (
+                    "translator_comment_f",
+                    models.TextField(blank=True, null=True),
+                ),
                 (
                     "state",
                     models.CharField(
@@ -238,8 +282,14 @@ class Migration(migrations.Migration):
                         max_length=16,
                     ),
                 ),
-                ("creation_time", models.DateTimeField(db_index=True, null=True)),
-                ("review_time", models.DateTimeField(db_index=True, null=True)),
+                (
+                    "creation_time",
+                    models.DateTimeField(db_index=True, null=True),
+                ),
+                (
+                    "review_time",
+                    models.DateTimeField(db_index=True, null=True),
+                ),
                 (
                     "unit",
                     models.ForeignKey(
@@ -282,7 +332,10 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(db_index=True, max_length=64)),
                 ("category", models.IntegerField(default=0)),
                 ("message", models.TextField()),
-                ("false_positive", models.BooleanField(db_index=True, default=False)),
+                (
+                    "false_positive",
+                    models.BooleanField(db_index=True, default=False),
+                ),
                 (
                     "unit",
                     models.ForeignKey(
@@ -293,17 +346,24 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name="store", unique_together=set([("parent", "name")]),
+            name="store", unique_together={("parent", "name")}
         ),
-        migrations.RunPython(code=make_store_paths_cs,),
+        migrations.RunPython(
+            code=make_store_paths_cs,
+        ),
         migrations.AlterUniqueTogether(
-            name="unit", unique_together=set([("store", "unitid_hash")]),
+            name="unit", unique_together={("store", "unitid_hash")}
         ),
         migrations.AlterIndexTogether(
             name="unit",
-            index_together=set(
-                [("store", "revision"), ("store", "index"), ("store", "mtime")]
-            ),
+            index_together={
+                ("store", "revision"),
+                ("store", "index"),
+                ("store", "mtime"),
+            },
         ),
-        migrations.AlterModelOptions(name="unit", options={"get_latest_by": "mtime"},),
+        migrations.AlterModelOptions(
+            name="unit",
+            options={"get_latest_by": "mtime"},
+        ),
     ]

@@ -195,7 +195,7 @@ class APIView(View):
             self.pk_field_name in self.kwargs
             and self.kwargs[self.pk_field_name] is not None
         ):
-            kwargs.update({"instance": self.get_object()})
+            kwargs["instance"] = self.get_object()
 
         return kwargs
 
@@ -269,12 +269,10 @@ class APIView(View):
 
             values = values[offset : offset + self.page_size]
 
-        return_values = {
+        return {
             "models": list(values),
             "count": queryset.count(),
         }
-
-        return return_values
 
     def get_search_filter(self, keyword):
         search_fields = getattr(self, "search_fields", None)
@@ -283,10 +281,11 @@ class APIView(View):
 
         field_queries = list(
             zip(
-                map(lambda x: "%s__icontains" % x, search_fields),
+                map(lambda x: f"{x}__icontains", search_fields),
                 (keyword,) * len(search_fields),
             )
         )
+
         lookups = [Q(x) for x in field_queries]
 
         return reduce(operator.or_, lookups)

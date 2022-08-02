@@ -157,4 +157,4 @@ def test_taskresultset_importance_order(
     tasks = [LightTask(*task_args) for task_args in fake_task_args]
     with snapshot_stack.push([as_dir(test_name), sort_type]) as snapshot:
         task_resultset = TaskResultSet(tasks).order_by_importance()
-        snapshot.assert_matches([task for task in task_resultset])
+        snapshot.assert_matches(list(task_resultset))

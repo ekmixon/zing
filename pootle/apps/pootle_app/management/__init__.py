@@ -23,10 +23,7 @@ def fix_permission_content_type_pre(**kwargs):
     if instance.name == "pootle" and instance.model == "":
         logging.debug("Fixing permissions content types")
         global permission_queryset
-        permission_queryset = [
-            permission
-            for permission in Permission.objects.filter(content_type=instance)
-        ]
+        permission_queryset = list(Permission.objects.filter(content_type=instance))
 
 
 @receiver(post_delete, sender=ContentType)

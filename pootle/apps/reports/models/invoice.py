@@ -69,7 +69,7 @@ class Invoice(object):
         self.generators = (Mod() for Mod in GENERATOR_MODULES if Mod.is_configured())
 
     def __repr__(self):
-        return u"<Invoice %s:%s>" % (self.user.username, self.month_string)
+        return f"<Invoice {self.user.username}:{self.month_string}>"
 
     @classmethod
     def check_config_for(cls, config_dict, username, require_email_fields=False):
@@ -84,10 +84,9 @@ class Invoice(object):
             if require_email_fields
             else cls.required_config_fields[0]
         )
-        missing_required_fields = [
+        if missing_required_fields := [
             field for field in required_fields if field not in config_dict
-        ]
-        if len(missing_required_fields) > 0:
+        ]:
             raise ImproperlyConfigured(
                 "The configuration for user %s is missing the following required "
                 "fields: %s.\n"
@@ -127,8 +126,9 @@ class Invoice(object):
         rates = scores.values("rate", "review_rate").distinct()
         if len(rates) > 1:
             raise ValueError(
-                "Multiple rate values recorded for user %s." % (self.user.username)
+                f"Multiple rate values recorded for user {self.user.username}."
             )
+
 
         rate = rates[0]["rate"] if len(rates) == 1 else 0
         review_rate = rates[0]["review_rate"] if len(rates) == 1 else 0
@@ -145,22 +145,21 @@ class Invoice(object):
                 and task_rate["rate"] != rate
             ):
                 raise ValueError(
-                    "Multiple TRANSLATION rate values for user %s." % self.user.username
+                    f"Multiple TRANSLATION rate values for user {self.user.username}."
                 )
+
             if (
                 task_rate["task_type"] == PaidTaskTypes.REVIEW
                 and review_rate > 0
                 and task_rate["rate"] != review_rate
             ):
-                raise ValueError(
-                    "Multiple REVIEW rate values for user %s." % self.user.username
-                )
+                raise ValueError(f"Multiple REVIEW rate values for user {self.user.username}.")
             if task_rate["task_type"] == PaidTaskTypes.HOURLY_WORK:
                 if hourly_rate > 0 and task_rate["rate"] != hourly_rate:
                     raise ValueError(
-                        "Multiple HOURLY_WORK rate values for user %s."
-                        % self.user.username
+                        f"Multiple HOURLY_WORK rate values for user {self.user.username}."
                     )
+
                 hourly_rate = task_rate["rate"]
 
         rate = rate if rate > 0 else self.user.rate
@@ -341,14 +340,14 @@ class Invoice(object):
             "paid_by": self.conf["paid_by"].lstrip(),
         }
 
-        ctx.update(self.amounts)
+        ctx |= self.amounts
         ctx.update(self.conf)
 
         return ctx
 
     def get_filename(self):
         # FIXME: make this configurable
-        return u"Invoice - %s - %s" % (self.conf["name"], self.id)
+        return f'Invoice - {self.conf["name"]} - {self.id}'
 
     def get_filepath(self, extension):
         """Returns the absolute file path for the invoice, using `extension` as
@@ -371,8 +370,7 @@ class Invoice(object):
         for generator in self.generators:
             filepath = self.get_filepath(generator.extension)
             logger.info('Generating %s at "%s"...', generator.name, filepath)
-            success = generator.generate(filepath, ctx)
-            if success:
+            if success := generator.generate(filepath, ctx):
                 generated_files.append((filepath, generator.media_type))
 
         return generated_files

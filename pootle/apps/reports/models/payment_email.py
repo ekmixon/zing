@@ -61,7 +61,7 @@ class BasePaymentEmail(object):
             "COMPANY": getattr(settings, "ZING_INVOICES_COMPANY", ""),
             "DEPARTMENT": getattr(settings, "ZING_INVOICES_DEPARTMENT", ""),
         }
-        ctx.update(self.invoice_ctx)
+        ctx |= self.invoice_ctx
         return ctx
 
     def get_body(self):
@@ -104,7 +104,7 @@ class AccountingPaymentEmail(BasePaymentEmail):
         """Returns the subject of the email sent to accounting."""
         # FIXME: make this customizable
         ctx = self.get_context_data()
-        return u"For payment: Invoice %s, %s" % (self.id, ctx["name"])
+        return f'For payment: Invoice {self.id}, {ctx["name"]}'
 
     def get_context_data(self):
         ctx = super().get_context_data()
@@ -120,7 +120,7 @@ class UserPaymentEmail(BasePaymentEmail):
         """Returns the subject of the email sent to the user."""
         # FIXME: make subjects customizable
         ctx = self.get_context_data()
-        return u"Sent for payment: Invoice %s, %s" % (self.id, ctx["name"])
+        return f'Sent for payment: Invoice {self.id}, {ctx["name"]}'
 
     def get_context_data(self):
         ctx = super().get_context_data()
@@ -144,4 +144,4 @@ class UserNoPaymentEmail(BasePaymentEmail):
                 u"; unpaid balance carried over to next month" % ctx["name"]
             )
 
-        return u"Notice: No payment will be sent this month to %s" % ctx["name"]
+        return f'Notice: No payment will be sent this month to {ctx["name"]}'

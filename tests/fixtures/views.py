@@ -25,15 +25,29 @@ BAD_VIEW_TESTS = OrderedDict(
         ("/projects", dict(code=301, location="/projects/")),
         ("/projects/project0", dict(code=301, location="/projects/project0/")),
         ("/projects/project0/foo.po", {}),
-        ("/projects/projectfoo", dict(code=301, location="/projects/projectfoo/")),
+        (
+            "/projects/projectfoo",
+            dict(code=301, location="/projects/projectfoo/"),
+        ),
         ("/projects/projectfoo/", {}),
-        ("/language0/projectfoo", dict(code=301, location="/language0/projectfoo/")),
+        (
+            "/language0/projectfoo",
+            dict(code=301, location="/language0/projectfoo/"),
+        ),
         ("/language0/projectfoo/", {}),
-        ("/language0/project0", dict(code=301, location="/language0/project0/")),
+        (
+            "/language0/project0",
+            dict(code=301, location="/language0/project0/"),
+        ),
         ("/projects/project0/subdir0/foo.po", {}),
-        # these may not be correct - but are current behaviour
-        ("/language0/project0/foo/", dict(code=302, location="/language0/project0/")),
-        ("/language0/project0/foo", dict(code=302, location="/language0/project0/")),
+        (
+            "/language0/project0/foo/",
+            dict(code=302, location="/language0/project0/"),
+        ),
+        (
+            "/language0/project0/foo",
+            dict(code=302, location="/language0/project0/"),
+        ),
         (
             "/language0/project0/subdir0",
             dict(code=302, location="/language0/project0/"),
@@ -44,7 +58,10 @@ BAD_VIEW_TESTS = OrderedDict(
         ("/language0/PROJECT0/store0.po", {}),
         ("/LANGUAGE0/", dict(code=301, location="/language0/")),
         ("/LANGUAGE0/foo/", dict(code=301, location="/language0/foo/")),
-        ("/LANGUAGE0/project0/", dict(code=301, location="/language0/project0/")),
+        (
+            "/LANGUAGE0/project0/",
+            dict(code=301, location="/language0/project0/"),
+        ),
         (
             "/LANGUAGE0/project0/subdir0/",
             dict(code=301, location="/language0/project0/subdir0/"),
@@ -54,11 +71,12 @@ BAD_VIEW_TESTS = OrderedDict(
             dict(code=301, location="/language0/project0/store0.po"),
         ),
         ("/xhr/units/1/edit/", dict(code=400)),
-        ("/xhr/uids/?path=/%s" % ("BAD" * 800), dict(ajax=True, code=400)),
+        (f'/xhr/uids/?path=/{"BAD" * 800}', dict(ajax=True, code=400)),
         ("/xhr/uids/?filter=translated&path=/", dict(ajax=True)),
         ("/xhr/units/?uids=BOBO", dict(ajax=True, code=400)),
     )
 )
+
 
 GET_UNITS_TESTS = OrderedDict(
     (
@@ -186,9 +204,10 @@ def get_units_views(request, client, request_users):
 
     url_params = urllib.parse.urlencode(params, True)
     response = client.get(
-        "%s?%s" % (reverse("pootle-xhr-uids"), url_params),
+        f'{reverse("pootle-xhr-uids")}?{url_params}',
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
 
     params["pootle_path"] = params["path"]
     return user, params, url_params, response
@@ -198,7 +217,7 @@ def get_units_views(request, client, request_users):
 def bad_views(request, client):
     url = request.param
     test = dict(code=404)
-    test.update(BAD_VIEW_TESTS[url])
+    test |= BAD_VIEW_TESTS[url]
     if test.get("ajax"):
         response = client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
     else:
@@ -217,6 +236,6 @@ def dp_view_urls(request, view_types):
     """List of url params required for disabled project tests."""
     kwargs = DISABLED_PROJECT_URL_PARAMS[request.param].copy()
     view_name = kwargs.pop("view_name")
-    view_name = "%s-%s" % (view_name, view_types)
+    view_name = f"{view_name}-{view_types}"
 
     return reverse(view_name, kwargs=kwargs)

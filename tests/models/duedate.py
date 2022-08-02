@@ -56,16 +56,19 @@ def test_duedate_create_project_propagates():
     """
     project_code = "project0"
 
-    store_path = "/projects/%s/store0.po" % project_code
+    store_path = f"/projects/{project_code}/store0.po"
     DueDateFactory.create(pootle_path=store_path,)
 
     store_due_dates = DueDate.objects.for_project_path(store_path).exclude(
         pootle_path=store_path,
     )
-    stores = Store.objects.filter(pootle_path__endswith="/%s/store0.po" % project_code,)
+    stores = Store.objects.filter(
+        pootle_path__endswith=f"/{project_code}/store0.po"
+    )
+
     assert store_due_dates.count() == stores.count() != 0
 
-    project_path = "/projects/%s/" % project_code
+    project_path = f"/projects/{project_code}/"
     DueDateFactory.create(pootle_path=project_path,)
 
     tp_due_dates = DueDate.objects.for_project_path(project_path).exclude(
@@ -82,10 +85,10 @@ def test_duedate_update_project_propagates():
     """
     project_code = "project0"
 
-    store_path = "/projects/%s/store0.po" % project_code
+    store_path = f"/projects/{project_code}/store0.po"
     DueDateFactory.create(pootle_path=store_path,)
 
-    project_path = "/projects/%s/" % project_code
+    project_path = f"/projects/{project_code}/"
     due_date = DueDateFactory.create(pootle_path=project_path,)
 
     # Update due date with different values
@@ -118,10 +121,10 @@ def test_duedate_delete_project_propagates():
     """
     project_code = "project0"
 
-    store_path = "/projects/%s/store0.po" % project_code
+    store_path = f"/projects/{project_code}/store0.po"
     DueDateFactory.create(pootle_path=store_path,)
 
-    project_path = "/projects/%s/" % project_code
+    project_path = f"/projects/{project_code}/"
     due_date = DueDateFactory.create(pootle_path=project_path,)
 
     tp_due_dates = DueDate.objects.for_project_path(project_path).exclude(
@@ -147,7 +150,7 @@ def test_duedate_delete_project_propagates():
 def test_duedate_unicode():
     due_on = aware_datetime(2017, 1, 1, 1, 2, 3)
     due_date = DueDateFactory.create(pootle_path="/foo/bar/", due_on=due_on,)
-    assert "%s" % due_date == "<DueDate: %s>" % due_date.due_on
+    assert f"{due_date}" == f"<DueDate: {due_date.due_on}>"
 
 
 @pytest.mark.django_db
@@ -165,7 +168,7 @@ def test_duedate_get_pending_tasks():
     tasks = DueDate.tasks(language)
     assert isinstance(tasks, TaskResultSet)
 
-    DueDateFactory.create(pootle_path="/%s/project0/" % language,)
+    DueDateFactory.create(pootle_path=f"/{language}/project0/")
 
     tasks = DueDate.tasks(language)
     assert isinstance(tasks, TaskResultSet)

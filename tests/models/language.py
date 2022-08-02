@@ -21,7 +21,7 @@ from pootle_language.models import Language
 @pytest.mark.django_db
 def test_language_repr():
     language = Language.objects.first()
-    assert "<Language: %s>" % language.name == repr(language)
+    assert f"<Language: {language.name}>" == repr(language)
 
 
 @pytest.mark.django_db

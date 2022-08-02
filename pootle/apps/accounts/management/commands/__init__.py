@@ -28,4 +28,4 @@ class UserCommand(BaseCommand):
         try:
             return User.objects.get(username=username)
         except User.DoesNotExist:
-            raise CommandError("User %s does not exist" % username)
+            raise CommandError(f"User {username} does not exist")

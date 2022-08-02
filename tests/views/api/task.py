@@ -44,7 +44,7 @@ def test_get_tasks(
 ):
     """Tests pending tasks retrieval."""
     language = "language0"
-    url = "/xhr/tasks/%s/" % language
+    url = f"/xhr/tasks/{language}/"
     user = request_users["user"]
 
     # FIXME: stats refreshing boilerplate
@@ -60,11 +60,15 @@ def test_get_tasks(
         pootle_path="/projects/project0/", due_on=now + timedelta(days=8),
     )
     DueDateFactory.create(
-        pootle_path="/%s/project0/store0.po" % language, due_on=now + timedelta(days=2),
+        pootle_path=f"/{language}/project0/store0.po",
+        due_on=now + timedelta(days=2),
     )
+
     DueDateFactory.create(
-        pootle_path="/%s/project1/store0.po" % language, due_on=now + timedelta(days=4),
+        pootle_path=f"/{language}/project1/store0.po",
+        due_on=now + timedelta(days=4),
     )
+
 
     with snapshot_stack.push([as_dir(test_name), as_dir(user.username)]):
         if not user.is_anonymous:
@@ -92,7 +96,7 @@ def test_get_tasks_permissions(
 ):
     """Tests pending tasks retrieval with restricted permissions."""
     language = "language0"
-    url = "/xhr/tasks/%s/" % language
+    url = f"/xhr/tasks/{language}/"
     user = request_users["user"]
 
     # Disallow `project0` access to `member`
@@ -112,11 +116,15 @@ def test_get_tasks_permissions(
         pootle_path="/projects/project0/", due_on=now + timedelta(days=8),
     )
     DueDateFactory.create(
-        pootle_path="/%s/project0/store0.po" % language, due_on=now + timedelta(days=2),
+        pootle_path=f"/{language}/project0/store0.po",
+        due_on=now + timedelta(days=2),
     )
+
     DueDateFactory.create(
-        pootle_path="/%s/project1/store0.po" % language, due_on=now + timedelta(days=4),
+        pootle_path=f"/{language}/project1/store0.po",
+        due_on=now + timedelta(days=4),
     )
+
 
     with snapshot_stack.push([as_dir(test_name), as_dir(user.username)]):
         if not user.is_anonymous:

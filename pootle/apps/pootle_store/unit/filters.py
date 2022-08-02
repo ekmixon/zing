@@ -24,7 +24,7 @@ class BaseUnitFilter(object):
 
     def filter(self, unit_filter):
         try:
-            return getattr(self, "filter_%s" % unit_filter.replace("-", "_"))()
+            return getattr(self, f'filter_{unit_filter.replace("-", "_")}')()
         except AttributeError:
             raise FilterNotFound()
 
@@ -79,35 +79,47 @@ class UnitContributionFilter(BaseUnitFilter):
         return self.qs.filter(suggestion__state=SuggestionStates.PENDING).distinct()
 
     def filter_user_suggestions(self):
-        if not self.user:
-            return self.qs.none()
-        return self.qs.filter(
-            suggestion__user=self.user, suggestion__state=SuggestionStates.PENDING
-        ).distinct()
+        return (
+            self.qs.filter(
+                suggestion__user=self.user,
+                suggestion__state=SuggestionStates.PENDING,
+            ).distinct()
+            if self.user
+            else self.qs.none()
+        )
 
     def filter_my_suggestions(self):
         return self.filter_user_suggestions()
 
     def filter_user_suggestions_accepted(self):
-        if not self.user:
-            return self.qs.none()
-        return self.qs.filter(
-            suggestion__user=self.user, suggestion__state=SuggestionStates.ACCEPTED
-        ).distinct()
+        return (
+            self.qs.filter(
+                suggestion__user=self.user,
+                suggestion__state=SuggestionStates.ACCEPTED,
+            ).distinct()
+            if self.user
+            else self.qs.none()
+        )
 
     def filter_user_suggestions_rejected(self):
-        if not self.user:
-            return self.qs.none()
-        return self.qs.filter(
-            suggestion__user=self.user, suggestion__state=SuggestionStates.REJECTED
-        ).distinct()
+        return (
+            self.qs.filter(
+                suggestion__user=self.user,
+                suggestion__state=SuggestionStates.REJECTED,
+            ).distinct()
+            if self.user
+            else self.qs.none()
+        )
 
     def filter_user_submissions(self):
-        if not self.user:
-            return self.qs.none()
-        return self.qs.filter(
-            submitted_by=self.user, submission__type__in=SubmissionTypes.EDIT_TYPES
-        ).distinct()
+        return (
+            self.qs.filter(
+                submitted_by=self.user,
+                submission__type__in=SubmissionTypes.EDIT_TYPES,
+            ).distinct()
+            if self.user
+            else self.qs.none()
+        )
 
     def filter_my_submissions(self):
         return self.filter_user_submissions()
@@ -170,9 +182,7 @@ class UnitTextSearch(object):
         return search_fields
 
     def get_words(self, text, exact):
-        if exact:
-            return [text]
-        return [t.strip() for t in text.split(" ") if t.strip()]
+        return [text] if exact else [t.strip() for t in text.split(" ") if t.strip()]
 
     def search(self, text, sfields, exact=False):
         result = self.qs.none()
@@ -185,5 +195,5 @@ class UnitTextSearch(object):
     def search_field(self, k, words):
         subresult = self.qs
         for word in words:
-            subresult = subresult.filter(**{("%s__icontains" % k): word})
+            subresult = subresult.filter(**{f"{k}__icontains": word})
         return subresult

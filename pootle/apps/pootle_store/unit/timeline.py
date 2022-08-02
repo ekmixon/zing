@@ -44,13 +44,10 @@ class SuggestionEvent(object):
         sugg_rejected_desc = _(u"Rejected suggestion from %(author)s" % params)
 
         if self.comment:
-            params.update(
-                {
-                    "comment": format_html(
-                        u'<span class="comment">{}</span>', self.comment
-                    ),
-                }
+            params["comment"] = format_html(
+                u'<span class="comment">{}</span>', self.comment
             )
+
             sugg_accepted_desc = _(
                 u"Accepted suggestion from %(author)s "
                 u"with comment: %(comment)s" % params
@@ -176,13 +173,11 @@ class Timeline(object):
     @property
     def suggestion_ids(self):
         return list(
-            set(
-                [
-                    x["suggestion_id"]
-                    for x in self.submissions_values
-                    if x["suggestion_id"]
-                ]
-            )
+            {
+                x["suggestion_id"]
+                for x in self.submissions_values
+                if x["suggestion_id"]
+            }
         )
 
     @cached_property

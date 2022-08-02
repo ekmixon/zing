@@ -40,10 +40,11 @@ def log_exception(request, exception, tb):
 
     # Send email to admins with details about exception
     ip_type = (
-        request.META.get("REMOTE_ADDR") in settings.INTERNAL_IPS
-        and "internal"
-        or "EXTERNAL"
+        "internal"
+        if request.META.get("REMOTE_ADDR") in settings.INTERNAL_IPS
+        else "EXTERNAL"
     )
+
     msg_args = {
         "ip_type": ip_type,
         "path": request.path,

@@ -114,10 +114,10 @@ def test_needs_scorelog():
 def test_update_submission_ordering():
     unit = Unit.objects.filter(state=UNTRANSLATED).first()
     unit.markfuzzy()
-    unit.target = "Fuzzy Translation for " + unit.source_f
+    unit.target = f"Fuzzy Translation for {unit.source_f}"
     unit.save()
 
-    store = create_store([(unit.source_f, "Translation for " + unit.source_f)])
+    store = create_store([(unit.source_f, f"Translation for {unit.source_f}")])
     unit.store.update(store)
     submission_field = Submission.objects.filter(unit=unit).latest().field
     assert submission_field == SubmissionFields.TARGET
@@ -134,9 +134,10 @@ def test_new_translation_submission_ordering(client, request_users):
 
     response = client.post(
         url,
-        {"state": False, "target_f_0": "Translation for " + unit.source_f},
+        {"state": False, "target_f_0": f"Translation for {unit.source_f}"},
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
 
     if check_permission("translate", response.wsgi_request):
         assert response.status_code == 200
@@ -151,7 +152,7 @@ def test_accept_sugg_submission_ordering(client, request_users):
     """Tests suggestion can be accepted with a comment."""
     unit = Unit.objects.filter(suggestion__state="pending", state=UNTRANSLATED)[0]
     unit.markfuzzy()
-    unit.target = "Fuzzy Translation for " + unit.source_f
+    unit.target = f"Fuzzy Translation for {unit.source_f}"
     unit.save()
     sugg = Suggestion.objects.filter(unit=unit, state="pending")[0]
     user = request_users["user"]

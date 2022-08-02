@@ -149,7 +149,7 @@ def get_uids(request):
     uid_groups = []
     group = []
     for uid, store_id in uids:
-        if not store_id == last_store_id:
+        if store_id != last_store_id:
             if len(group) > 0:
                 uid_groups.append(group)
                 group = []
@@ -289,7 +289,7 @@ class PootleUnitJSON(PootleJSON):
         self.object = self.get_object()
         tp_prefix = "parent__" * (self.pootle_path.count("/") - 3)
         return Directory.objects.select_related(
-            "%stranslationproject__project" % tp_prefix
+            f"{tp_prefix}translationproject__project"
         ).get(pk=self.store.parent_id)
 
     @property
@@ -379,9 +379,7 @@ class UnitEditJSON(PootleUnitJSON):
         return self.get_edit_template().render(context=context, request=self.request)
 
     def get_source_nplurals(self):
-        if self.object.hasplural():
-            return len(self.object.source.strings)
-        return None
+        return len(self.object.source.strings) if self.object.hasplural() else None
 
     def get_target_nplurals(self):
         source_nplurals = self.get_source_nplurals()
@@ -389,7 +387,7 @@ class UnitEditJSON(PootleUnitJSON):
 
     def get_unit_values(self):
         target_nplurals = self.get_target_nplurals()
-        unit_values = [value for value in self.object.target_f.strings]
+        unit_values = list(self.object.target_f.strings)
         if len(unit_values) < target_nplurals:
             return unit_values + ((target_nplurals - len(unit_values)) * [""])
         return unit_values
@@ -435,9 +433,7 @@ class UnitEditJSON(PootleUnitJSON):
 
     def get_tm_suggestions(self, ctx):
         can_edit = ctx["cansuggest"] or ctx["cantranslate"]
-        if not can_edit:
-            return []
-        return self.object.get_tm_suggestions()[:MAX_TM_RESULTS]
+        return self.object.get_tm_suggestions()[:MAX_TM_RESULTS] if can_edit else []
 
     def get_context_data(self, *args, **kwargs):
         return {
@@ -571,11 +567,7 @@ def submit(request, unit):
     language = translation_project.language
     old_unit = copy.copy(unit)
 
-    if unit.hasplural():
-        snplurals = len(unit.source.strings)
-    else:
-        snplurals = None
-
+    snplurals = len(unit.source.strings) if unit.hasplural() else None
     # Store current time so that it is the same for all submissions
     current_time = timezone.now()
 
@@ -648,11 +640,7 @@ def suggest(request, unit):
     translation_project = request.translation_project
     language = translation_project.language
 
-    if unit.hasplural():
-        snplurals = len(unit.source.strings)
-    else:
-        snplurals = None
-
+    snplurals = len(unit.source.strings) if unit.hasplural() else None
     form_class = unit_form_factory(language, snplurals, request)
     form = form_class(request.POST, instance=unit, request=request)
 
@@ -741,9 +729,10 @@ def accept_suggestion(request, unit, suggid):
         "udbid": unit.id,
         "sugid": suggid,
         "user_score": request.user.public_score,
-        "newtargets": [target for target in unit.target.strings],
+        "newtargets": list(unit.target.strings),
         "checks": _get_critical_checks_snippet(request, unit),
     }
+
     return JsonResponse(json)
 
 

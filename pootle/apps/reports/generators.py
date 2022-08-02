@@ -73,10 +73,14 @@ class PDFGenerator(object):
         html2pdf_js = os.path.join(
             os.path.abspath(os.path.dirname(__file__)), "html2pdf.js"
         )
-        exit_code = call(
-            [settings.ZING_INVOICES_PHANTOMJS_BIN, html2pdf_js, html_filepath, filepath]
-        )
-        if exit_code:
+        if exit_code := call(
+            [
+                settings.ZING_INVOICES_PHANTOMJS_BIN,
+                html2pdf_js,
+                html_filepath,
+                filepath,
+            ]
+        ):
             logger.debug("Script exited with code: %s", exit_code)
             return False
 

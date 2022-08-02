@@ -131,11 +131,10 @@ class PootleCommand(BaseCommand):
 
         if self.projects:
             project_query = Project.objects.filter(code__in=self.projects)
+        elif self.process_disabled_projects:
+            project_query = Project.objects.all()
         else:
-            if self.process_disabled_projects:
-                project_query = Project.objects.all()
-            else:
-                project_query = Project.objects.enabled()
+            project_query = Project.objects.enabled()
 
         for project in project_query.iterator():
             tp_query = project.translationproject_set.live().order_by("language__code")

@@ -137,9 +137,9 @@ class PootleBrowseView(BrowseDataViewMixin, PootleDetailView):
                 }
 
         pending_tasks = None
-        PENDING_TASKS_LIMIT = 3
         if lang_code and self.request.user.is_authenticated:
             tasks = DueDate.tasks(lang_code, user=self.request.user)
+            PENDING_TASKS_LIMIT = 3
             pending_tasks = {
                 "total": tasks.total,
                 "items": tasks[:PENDING_TASKS_LIMIT],

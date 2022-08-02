@@ -38,9 +38,10 @@ def test_get_contributors_store(client, request_users):
 
     store = Store.objects.get(pootle_path="/language0/project0/store0.po")
     response = client.get(
-        "/xhr/stats/contributors/?path=%s" % store.pootle_path,
+        f"/xhr/stats/contributors/?path={store.pootle_path}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 200
     result = json.loads(response.content)
 
@@ -61,9 +62,10 @@ def test_get_contributors_tp(client, request_users):
 
     tp = TranslationProject.objects.get(pootle_path="/language0/project0/")
     response = client.get(
-        "/xhr/stats/contributors/?path=%s" % tp.pootle_path,
+        f"/xhr/stats/contributors/?path={tp.pootle_path}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 200
     result = json.loads(response.content)
 
@@ -83,9 +85,10 @@ def test_get_contributors_project(client, request_users):
 
     project = Project.objects.get(code="project0")
     response = client.get(
-        "/xhr/stats/contributors/?path=%s" % project.pootle_path,
+        f"/xhr/stats/contributors/?path={project.pootle_path}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 200
     result = json.loads(response.content)
 
@@ -105,9 +108,10 @@ def test_get_contributors_language(client, request_users):
 
     language = Language.objects.get(code="language0")
     response = client.get(
-        "/xhr/stats/contributors/?path=%s" % language.pootle_path,
+        f"/xhr/stats/contributors/?path={language.pootle_path}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 200
     result = json.loads(response.content)
 
@@ -127,9 +131,10 @@ def test_get_contributors_projects(client, request_users):
 
     directory = Directory.objects.projects
     response = client.get(
-        "/xhr/stats/contributors/?path=%s" % directory.pootle_path,
+        f"/xhr/stats/contributors/?path={directory.pootle_path}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 200
     result = json.loads(response.content)
 
@@ -150,7 +155,8 @@ def test_get_contributors_wrong_params(client, request_users, path, offset):
         client.force_login(user)
 
     response = client.get(
-        "/xhr/stats/contributors/?path=%s&offset=%s" % (path, offset),
+        f"/xhr/stats/contributors/?path={path}&offset={offset}",
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
+
     assert response.status_code == 404

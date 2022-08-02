@@ -44,7 +44,7 @@ class Command(UserCommand):
                 try:
                     utils.verify_user(user)
                     self.stdout.write("Verified user '%s'" % user.username)
-                except (ValueError, ValidationError) as e:
+                except ValueError as e:
                     self.stderr.write(str(e))
 
         if options["user"]:
@@ -52,5 +52,5 @@ class Command(UserCommand):
                 try:
                     utils.verify_user(self.get_user(user))
                     self.stdout.write("User '%s' has been verified" % user)
-                except (ValueError, ValidationError) as e:
+                except ValueError as e:
                     self.stderr.write(str(e))

@@ -74,8 +74,7 @@ class TerminologyComparer(terminology.TerminologyComparer):
             if matched_count == 0:
                 break
 
-        if matched_count == term_count:
-            self.match_info[term] = match_info
-            return 100
-        else:
+        if matched_count != term_count:
             return 0
+        self.match_info[term] = match_info
+        return 100

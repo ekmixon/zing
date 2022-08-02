@@ -167,8 +167,8 @@ class Directory(models.Model, CachedTreeItem):
         result = []
         if not self.is_projects_root():
             # FIXME: can we replace this with a quicker path query?
-            result.extend([item for item in self.child_stores.live().iterator()])
-            result.extend([item for item in self.child_dirs.live().iterator()])
+            result.extend(list(self.child_stores.live().iterator()))
+            result.extend(list(self.child_dirs.live().iterator()))
         else:
             project_list = [
                 item.project
@@ -206,21 +206,19 @@ class Directory(models.Model, CachedTreeItem):
 
         from pootle_store.models import Store
 
-        if path not in (None, ""):
-            pootle_path = "%s%s" % (self.pootle_path, path)
-            try:
-                return Directory.objects.live().get(pootle_path=pootle_path)
-            except Directory.DoesNotExist as e:
-                try:
-                    return Store.objects.live().get(pootle_path=pootle_path)
-                except Store.DoesNotExist:
-                    raise e
-        else:
+        if path in (None, ""):
             return self
+        pootle_path = f"{self.pootle_path}{path}"
+        try:
+            return Directory.objects.live().get(pootle_path=pootle_path)
+        except Directory.DoesNotExist as e:
+            try:
+                return Store.objects.live().get(pootle_path=pootle_path)
+            except Store.DoesNotExist:
+                raise e
 
     def get_or_make_subdir(self, child_name):
-        child_dir = Directory.objects.get_or_create(name=child_name, parent=self)[0]
-        return child_dir
+        return Directory.objects.get_or_create(name=child_name, parent=self)[0]
 
     def trail(self):
         """Returns a list of ancestor directories excluding

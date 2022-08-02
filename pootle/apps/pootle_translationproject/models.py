@@ -60,9 +60,7 @@ def create_translation_project(language, project):
                 language=language, project=project
             )
             return translation_project
-        except OSError:
-            return None
-        except IndexError:
+        except (OSError, IndexError):
             return None
 
 
@@ -199,7 +197,7 @@ class TranslationProject(models.Model, CachedTreeItem):
 
     @property
     def fullname(self):
-        return "%s [%s]" % (self.project.fullname, self.language.name)
+        return f"{self.project.fullname} [{self.language.name}]"
 
     @property
     def abs_real_path(self):
@@ -208,10 +206,7 @@ class TranslationProject(models.Model, CachedTreeItem):
 
     @abs_real_path.setter
     def abs_real_path(self, value):
-        if value is not None:
-            self.real_path = relative_real_path(value)
-        else:
-            self.real_path = None
+        self.real_path = relative_real_path(value) if value is not None else None
 
     @property
     def checker(self):

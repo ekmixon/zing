@@ -29,8 +29,9 @@ def test_get_edit_unit(project0_disk, get_edit_unit, client, request_users, sett
     language = translation_project.language
 
     response = client.get(
-        "/xhr/units/%s/edit/" % unit.id, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        f"/xhr/units/{unit.id}/edit/", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
     )
+
     request = response.wsgi_request
     result = json.loads(response.content)
 

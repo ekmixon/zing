@@ -30,9 +30,7 @@ def _require_permission(code, name, content_type):
         "name": name,
         "content_type": content_type,
     }
-    permission = Permission.objects.get_or_create(**criteria)[0]
-
-    return permission
+    return Permission.objects.get_or_create(**criteria)[0]
 
 
 @pytest.fixture

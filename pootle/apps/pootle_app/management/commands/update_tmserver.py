@@ -24,7 +24,7 @@ from pootle.core.utils import dateformat
 from pootle_store.models import Unit
 
 
-ALL_TM_INDICES = INDEX_PREFIX + "*"
+ALL_TM_INDICES = f"{INDEX_PREFIX}*"
 BULK_CHUNK_SIZE = 5000
 
 
@@ -139,7 +139,7 @@ class Command(BaseCommand):
             self.stdout.write("No translations to index")
             sys.exit()
 
-        self.stdout.write("%s translations to index" % total)
+        self.stdout.write(f"{total} translations to index")
 
         if options["dry_run"]:
             sys.exit()
@@ -189,7 +189,7 @@ class Command(BaseCommand):
 
         self.parser.last_indexed_revision = self.last_indexed_revision
 
-        self.stdout.write("Last indexed revision = %s" % self.last_indexed_revision)
+        self.stdout.write(f"Last indexed revision = {self.last_indexed_revision}")
 
     def handle(self, **options):
         self._initialize(**options)

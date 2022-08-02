@@ -60,7 +60,7 @@ def _require_user(
 
     User = get_user_model()
 
-    email = email if email is not None else "%s@example.com" % username
+    email = email if email is not None else f"{username}@example.com"
     criteria = {
         "username": username,
         "full_name": fullname,
@@ -78,7 +78,7 @@ def _require_user(
         user.save()
 
     if alt_src_lang_code is not None and request is not None:
-        alt_src_lang = request.getfixturevalue("%s_factory" % alt_src_lang_code)
+        alt_src_lang = request.getfixturevalue(f"{alt_src_lang_code}_factory")
         user.alt_src_langs.add(alt_src_lang)
 
     return user

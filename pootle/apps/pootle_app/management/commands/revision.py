@@ -36,4 +36,4 @@ class Command(SkipChecksMixin, BaseCommand):
 
             Revision.set(Unit.max_revision())
 
-        self.stdout.write("%s" % Revision.get())
+        self.stdout.write(f"{Revision.get()}")

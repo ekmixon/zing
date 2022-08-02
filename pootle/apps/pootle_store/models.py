@@ -183,10 +183,7 @@ class Suggestion(models.Model, base.TranslationUnit):
 
     def _set_hash(self):
         string = self.translator_comment_f
-        if string:
-            string = self.target_f + SEPARATOR + string
-        else:
-            string = self.target_f
+        string = self.target_f + SEPARATOR + string if string else self.target_f
         self.target_hash = md5(string.encode("utf-8")).hexdigest()
 
 
@@ -196,12 +193,7 @@ wordcount_f = import_func(settings.ZING_WORDCOUNT_FUNC)
 
 
 def count_words(strings):
-    wordcount = 0
-
-    for string in strings:
-        wordcount += wordcount_f(string)
-
-    return wordcount
+    return sum(wordcount_f(string) for string in strings)
 
 
 def stringcount(string):
@@ -304,10 +296,7 @@ class Unit(models.Model, base.TranslationUnit):
     def terminology(self):
         """Retrieves terminology suggestions."""
         matcher = self.store.translation_project.gettermmatcher()
-        if matcher is None:
-            return []
-
-        return matcher.matches(self.source)
+        return [] if matcher is None else matcher.matches(self.source)
 
     # # # # # # # # # # # # # Class & static methods # # # # # # # # # # # # #
 
@@ -400,9 +389,8 @@ class Unit(models.Model, base.TranslationUnit):
 
                     if not hasattr(self, "_save_action"):
                         self._save_action = TRANSLATION_ADDED
-                else:
-                    if not hasattr(self, "_save_action"):
-                        self._save_action = TRANSLATION_CHANGED
+                elif not hasattr(self, "_save_action"):
+                    self._save_action = TRANSLATION_CHANGED
             else:
                 if not hasattr(self, "_save_action"):
                     self._save_action = TRANSLATION_DELETED
@@ -472,7 +460,7 @@ class Unit(models.Model, base.TranslationUnit):
             self.add_initial_submission(user=user)
 
         if self._source_updated or self._target_updated:
-            if not (created and self.state == UNTRANSLATED):
+            if not created or self.state != UNTRANSLATED:
                 self.update_qualitychecks()
             if self.istranslated():
                 self.update_tmserver()
@@ -493,7 +481,7 @@ class Unit(models.Model, base.TranslationUnit):
         return self.store.get_absolute_url()
 
     def get_translate_url(self):
-        return "%s%s" % (self.store.get_translate_url(), "#unit=%s" % str(self.id))
+        return f"{self.store.get_translate_url()}#unit={str(self.id)}"
 
     def get_search_locations_url(self):
         (proj_code, dir_path, filename) = split_pootle_path(self.store.pootle_path)[1:]
@@ -508,8 +496,9 @@ class Unit(models.Model, base.TranslationUnit):
         )
 
     def get_screenshot_url(self):
-        prefix = self.store.translation_project.project.screenshot_search_prefix
-        if prefix:
+        if (
+            prefix := self.store.translation_project.project.screenshot_search_prefix
+        ):
             return prefix + quote(self.source_f)
 
     def is_accessible_by(self, user):
@@ -700,12 +689,13 @@ class Unit(models.Model, base.TranslationUnit):
 
         checks = self.qualitycheck_set.all()
 
-        existing = {}
-        for check in checks.values("name", "false_positive", "id"):
-            existing[check["name"]] = {
+        existing = {
+            check["name"]: {
                 "false_positive": check["false_positive"],
                 "id": check["id"],
             }
+            for check in checks.values("name", "false_positive", "id")
+        }
 
         # no checks if unit is untranslated
         if not self.target:
@@ -796,18 +786,17 @@ class Unit(models.Model, base.TranslationUnit):
         }
 
         if self.submitted_on:
-            obj.update({"mtime": int(dateformat.format(self.submitted_on, "U"))})
+            obj["mtime"] = int(dateformat.format(self.submitted_on, "U"))
 
         if self.submitted_by:
-            obj.update(
-                {
-                    "username": self.submitted_by.username,
-                    "fullname": self.submitted_by.full_name,
-                    "email_md5": md5(
-                        self.submitted_by.email.encode("utf-8")
-                    ).hexdigest(),
-                }
-            )
+            obj |= {
+                "username": self.submitted_by.username,
+                "fullname": self.submitted_by.full_name,
+                "email_md5": md5(
+                    self.submitted_by.email.encode("utf-8")
+                ).hexdigest(),
+            }
+
 
         get_tm_broker().update(self.store.translation_project.language.code, obj)
 
@@ -925,10 +914,7 @@ class Unit(models.Model, base.TranslationUnit):
         if [_f for _f in self.target_f.strings if _f]:
             # when Unit toggles its OBSOLETE state the number of translated
             # words or fuzzy words also changes
-            if is_fuzzy:
-                self.state = FUZZY
-            else:
-                self.state = TRANSLATED
+            self.state = FUZZY if is_fuzzy else TRANSLATED
         else:
             self.state = UNTRANSLATED
 
@@ -1330,8 +1316,7 @@ class Store(models.Model, CachedTreeItem, base.TranslationStore):
         chunks = 200
         for i in range(0, len(ids), chunks):
             units = (unit_set or self.unit_set).filter(id__in=ids[i : i + chunks])
-            for unit in units.iterator():
-                yield unit
+            yield from units.iterator()
 
     def get_file_mtime(self):
         try:
@@ -1407,22 +1392,20 @@ class Store(models.Model, CachedTreeItem, base.TranslationStore):
         if submission_type is None:
             submission_type = SubmissionTypes.SYSTEM
 
-        subs_created = []
-        for field in create_subs:
-            subs_created.append(
-                Submission(
-                    creation_time=current_time,
-                    translation_project_id=self.translation_project_id,
-                    submitter=user,
-                    unit=unit,
-                    store_id=self.id,
-                    field=field,
-                    type=submission_type,
-                    old_value=create_subs[field][0],
-                    new_value=create_subs[field][1],
-                )
+        if subs_created := [
+            Submission(
+                creation_time=current_time,
+                translation_project_id=self.translation_project_id,
+                submitter=user,
+                unit=unit,
+                store_id=self.id,
+                field=field,
+                type=submission_type,
+                old_value=create_subs[field][0],
+                new_value=create_subs[field][1],
             )
-        if subs_created:
+            for field in create_subs
+        ]:
             unit.submission_set.add(*subs_created, bulk=False)
 
     def update(self, store, user=None, store_revision=None, submission_type=None):
@@ -1505,8 +1488,7 @@ class Store(models.Model, CachedTreeItem, base.TranslationStore):
             return units
 
     def findunit(self, source, obsolete=False):
-        units = self.findunits(source, obsolete)
-        if units:
+        if units := self.findunits(source, obsolete):
             return units[0]
 
     def findid(self, id):
@@ -1598,8 +1580,7 @@ class Store(models.Model, CachedTreeItem, base.TranslationStore):
         # creation_time field has been added recently, so it can have NULL
         # value
         if max_unit is not None:
-            max_time = max_unit.creation_time
-            if max_time:
+            if max_time := max_unit.creation_time:
                 return max_unit.get_last_updated_info()
 
         return CachedTreeItem._get_last_updated()

@@ -36,9 +36,7 @@ def parse_requirements(file_name):
 
         if re.match(r"\s*-e\s+", line):
             requirements.append(re.sub(r"\s*-e\s+.*#egg=(.*)$", r"\1", line))
-        elif re.match(r"\s*-f\s+", line):
-            pass
-        else:
+        elif not re.match(r"\s*-f\s+", line):
             requirements.append(line)
 
     return requirements
@@ -142,12 +140,14 @@ setup(
     name="Zing",
     version=__version__,
     description="An online interface to localizing.",
-    long_description=open(os.path.join(os.path.dirname(__file__), "README.md")).read(),
+    long_description=open(
+        os.path.join(os.path.dirname(__file__), "README.md")
+    ).read(),
     author="Evernote",
     author_email="l10n-developers@evernote.com",
     license="GNU General Public License 3 or later (GPLv3+)",
     url="https://github.com/evernote/zing",
-    download_url="https://github.com/evernote/zing/releases/tag/" + __version__,
+    download_url=f"https://github.com/evernote/zing/releases/tag/{__version__}",
     install_requires=parse_requirements("requirements/base.txt"),
     platforms=["any"],
     classifiers=[
@@ -157,7 +157,8 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Information Technology",
-        "License :: OSI Approved :: " "GNU General Public License v3 or later (GPLv3+)",
+        "License :: OSI Approved :: "
+        "GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: Unix",

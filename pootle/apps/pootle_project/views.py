@@ -33,7 +33,7 @@ class ProjectMixin(object):
 
     @property
     def ctx_path(self):
-        return "/projects/%s/" % self.project.code
+        return f"/projects/{self.project.code}/"
 
     @property
     def permission_context(self):
@@ -62,20 +62,18 @@ class ProjectMixin(object):
         if not (self.kwargs["dir_path"] or self.kwargs["filename"]):
             return self.project
 
-        project_path = "/%s/%s%s" % (
-            self.project.code,
-            self.kwargs["dir_path"],
-            self.kwargs["filename"],
-        )
-        regex = r"^/[^/]*%s$" % project_path
+        project_path = f'/{self.project.code}/{self.kwargs["dir_path"]}{self.kwargs["filename"]}'
+
+        regex = f"^/[^/]*{project_path}$"
         if not self.kwargs["filename"]:
             dirs = Directory.objects.live()
             if self.kwargs["dir_path"].count("/"):
                 tp_prefix = "parent__" * self.kwargs["dir_path"].count("/")
                 dirs = dirs.select_related(
-                    "%stranslationproject" % tp_prefix,
-                    "%stranslationproject__language" % tp_prefix,
+                    f"{tp_prefix}translationproject",
+                    f"{tp_prefix}translationproject__language",
                 )
+
             resources = dirs.filter(
                 pootle_path__endswith=project_path, pootle_path__regex=regex,
             )
@@ -216,9 +214,7 @@ class ProjectsBrowseView(ProjectsMixin, PootleBrowseView):
         return ItemTypes.PROJECT
 
     def get_item_title(self, path_obj):
-        if isinstance(path_obj, ProjectSet):
-            return ""
-        return path_obj.fullname
+        return "" if isinstance(path_obj, ProjectSet) else path_obj.fullname
 
 
 class ProjectsTranslateView(ProjectsMixin, PootleTranslateView):

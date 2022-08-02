@@ -87,21 +87,21 @@ class DBSearchBackend(object):
         )
 
     def sort_qs(self, qs):
-        if self.unit_filter and self.sort_by is not None:
-            sort_by = self.sort_by
-            if self.sort_on not in SIMPLY_SORTED:
-                # Omit leading `-` sign
-                if self.sort_by[0] == "-":
-                    max_field = self.sort_by[1:]
-                    sort_by = "-sort_by_field"
-                else:
-                    max_field = self.sort_by
-                    sort_by = "sort_by_field"
-                # It's necessary to use `Max()` here because we can't
-                # use `distinct()` and `order_by()` at the same time
-                qs = qs.annotate(sort_by_field=Max(max_field))
-            return qs.order_by(sort_by, "store__pootle_path", "index")
-        return qs
+        if not self.unit_filter or self.sort_by is None:
+            return qs
+        sort_by = self.sort_by
+        if self.sort_on not in SIMPLY_SORTED:
+            # Omit leading `-` sign
+            if self.sort_by[0] == "-":
+                max_field = self.sort_by[1:]
+                sort_by = "-sort_by_field"
+            else:
+                max_field = self.sort_by
+                sort_by = "sort_by_field"
+            # It's necessary to use `Max()` here because we can't
+            # use `distinct()` and `order_by()` at the same time
+            qs = qs.annotate(sort_by_field=Max(max_field))
+        return qs.order_by(sort_by, "store__pootle_path", "index")
 
     def filter_qs(self, qs):
         kwargs = self.kwargs

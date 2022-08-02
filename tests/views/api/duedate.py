@@ -82,7 +82,7 @@ def test_duedate_update(client, request_users, test_name, snapshot_stack, path):
     due_date = DueDateFactory.create(**data)
     assert due_date.id is not None
 
-    url = "/xhr/duedates/%s/" % due_date.id
+    url = f"/xhr/duedates/{due_date.id}/"
     put_data = {
         "due_on": "2017-01-27",
         "pootle_path": path,
@@ -132,7 +132,7 @@ def test_duedate_delete(client, request_users, test_name, snapshot_stack, path):
     due_date = DueDateFactory.create(**data)
     assert due_date.id is not None
 
-    url = "/xhr/duedates/%s/" % due_date.id
+    url = f"/xhr/duedates/{due_date.id}/"
 
     with snapshot_stack.push(
         [as_dir(test_name), as_dir(user.username), url_name(path)]

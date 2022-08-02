@@ -51,8 +51,9 @@ class Command(SkipChecksMixin, BaseCommand):
                 versions.append(self._run([binary, "--version"]).rstrip())
             except OSError:
                 raise CommandError(
-                    "Cannot find `%s` executable. Please install it and retry." % binary
+                    f"Cannot find `{binary}` executable. Please install it and retry."
                 )
+
 
         logger.info("using node (%s) and npm (%s)", *versions)
 
@@ -83,5 +84,5 @@ class Command(SkipChecksMixin, BaseCommand):
         )
         manifest_file = os.path.join(self.static_dir, "manifest.json")
         management.call_command(
-            "assets", "build", "--manifest", "json:%s" % manifest_file
+            "assets", "build", "--manifest", f"json:{manifest_file}"
         )

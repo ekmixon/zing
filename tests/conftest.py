@@ -174,7 +174,7 @@ def pytest_configure():
 def _load_fixtures(*modules):
     for mod in modules:
         path = mod.__path__
-        prefix = "%s." % mod.__name__
+        prefix = f"{mod.__name__}."
 
         for loader_, name, is_pkg in iter_modules(path, prefix):
             if not is_pkg:

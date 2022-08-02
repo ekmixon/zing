@@ -25,16 +25,14 @@ from pootle_store.unit.filters import (
 
 
 def _expected_text_search_words(text, exact):
-    if exact:
-        return [text]
-    return [t.strip() for t in text.split(" ") if t.strip()]
+    return [text] if exact else [t.strip() for t in text.split(" ") if t.strip()]
 
 
 def _expected_text_search_results(qs, words, search_fields):
     def _search_field(k):
         subresult = qs.all()
         for word in words:
-            subresult = subresult.filter(**{("%s__icontains" % k): word})
+            subresult = subresult.filter(**{f"{k}__icontains": word})
         return subresult
 
     result = qs.none()
@@ -150,12 +148,11 @@ def _test_unit_text_search(qs, text, sfields, exact, empty=True):
         assert item in qs
 
         for word in words:
-            searchword_found = False
-            for field in fields:
-                if word.lower() in getattr(item, field).lower():
-                    # one of the items attrs matches search
-                    searchword_found = True
-                    break
+            searchword_found = any(
+                word.lower() in getattr(item, field).lower()
+                for field in fields
+            )
+
             assert searchword_found
 
 
@@ -216,7 +213,7 @@ def test_units_contribution_filter_none(units_contributor_searches):
     user = None
 
     qs = Unit.objects.all()
-    if not hasattr(UnitContributionFilter, "filter_%s" % unit_filter):
+    if not hasattr(UnitContributionFilter, f"filter_{unit_filter}"):
         with pytest.raises(FilterNotFound):
             UnitContributionFilter(qs, user=user).filter(unit_filter)
         return
@@ -235,7 +232,7 @@ def test_units_contribution_filter(units_contributor_searches, site_users):
     user = site_users["user"]
 
     qs = Unit.objects.all()
-    if not hasattr(UnitContributionFilter, "filter_%s" % unit_filter):
+    if not hasattr(UnitContributionFilter, f"filter_{unit_filter}"):
         with pytest.raises(FilterNotFound):
             UnitContributionFilter(qs, user=user).filter(unit_filter)
         return
@@ -252,7 +249,7 @@ def test_units_contribution_filter(units_contributor_searches, site_users):
 def test_units_state_filter(units_state_searches):
     unit_filter = units_state_searches
     qs = Unit.objects.all()
-    if not hasattr(UnitStateFilter, "filter_%s" % unit_filter):
+    if not hasattr(UnitStateFilter, f"filter_{unit_filter}"):
         with pytest.raises(FilterNotFound):
             UnitStateFilter(qs).filter(unit_filter)
         return

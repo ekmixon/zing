@@ -40,14 +40,14 @@ class DueDateQuerySet(models.QuerySet):
         if not pootle_path.startswith("/projects/"):
             return self.none()
 
-        xlang_regex = r"^%s$" % re.sub(r"^/projects/", "/[^/]*/", pootle_path)
+        xlang_regex = f'^{re.sub(r"^/projects/", "/[^/]*/", pootle_path)}$'
         return self.filter(pootle_path__regex=xlang_regex,).exclude(
             pootle_path__startswith="/projects/",
         )
 
     def for_language(self, language_code):
         """Retrieves a queryset of due dates affecting `language_code`."""
-        return self.filter(pootle_path__startswith="/%s/" % language_code,)
+        return self.filter(pootle_path__startswith=f"/{language_code}/")
 
     def accessible_by(self, user):
         """Retrieves a queryset of due dates accessible by `user`."""
@@ -55,8 +55,8 @@ class DueDateQuerySet(models.QuerySet):
             return self
 
         project_codes = Project.objects.cached_dict(user).keys()
-        project_codes_regex = "(%s)" % "|".join(project_codes)
-        return self.filter(pootle_path__regex=r"^/[^/]*/%s/" % project_codes_regex,)
+        project_codes_regex = f'({"|".join(project_codes)})'
+        return self.filter(pootle_path__regex=f"^/[^/]*/{project_codes_regex}/")
 
 
 class FakeUser(object):
@@ -126,7 +126,7 @@ class DueDate(models.Model):
         return TaskResultSet(due_tasks).order_by_deadline()
 
     def __str__(self):
-        return "<DueDate: %s>" % (self.due_on)
+        return f"<DueDate: {self.due_on}>"
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -174,7 +174,7 @@ class DueDate(models.Model):
         DueDate.objects.for_project_path(self.pootle_path).delete()
 
     def get_language_path(self, language_code):
-        return re.sub(r"^/projects/", "/%s/" % language_code, self.pootle_path)
+        return re.sub(r"^/projects/", f"/{language_code}/", self.pootle_path)
 
     def get_pending_tasks(self, now):
         """Gets tasks pending in the language referenced by this due date.
